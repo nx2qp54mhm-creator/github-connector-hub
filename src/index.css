@@ -4,6 +4,9 @@
 
 /* Typography - Sophisticated serif & sans combination */
 @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Crimson+Pro&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=SF+Mono&display=swap");
 
 @layer base {
   :root {
@@ -61,9 +64,9 @@
     --gradient-subtle: linear-gradient(180deg, hsl(40, 30%, 96%) 0%, hsl(40, 25%, 94%) 100%);
 
     /* Elegant shadows - Softer, warmer */
-    --shadow-sm: 0 1px 3px hsl(160 20% 15% / 0.06);
-    --shadow-md: 0 2px 8px hsl(160 20% 15% / 0.08);
-    --shadow-lg: 0 4px 16px hsl(160 20% 15% / 0.10);
+    --shadow-sm: 0px 3px 1.5px 0px hsla(0, 0%, 0%, 0.1);
+    --shadow-md: 0px 3px 4.5px 0px hsla(0, 0%, 0%, 0.1);
+    --shadow-lg: 0px 3px 7.5px 0px hsla(0, 0%, 0%, 0.1);
     --shadow-xl: 0 8px 32px hsl(160 20% 15% / 0.12);
     --shadow-primary: 0 4px 16px hsl(165 45% 35% / 0.15);
     --shadow-glow: 0 0 24px hsl(165 45% 35% / 0.10);
@@ -76,6 +79,10 @@
     --sidebar-accent-foreground: 160 20% 20%;
     --sidebar-border: 40 20% 88%;
     --sidebar-ring: 165 45% 35%;
+    --font-sans: "Open Sans", ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+    --font-serif: "Crimson Pro", ui-serif, Georgia, Cambria, Times New Roman, Times, serif;
+    --font-mono: "SF Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+    --shadow: 0px 3px 3px 0px hsla(0, 0%, 0%, 0.1);
   }
 
   .dark {
@@ -123,9 +130,9 @@
     --gradient-card-hover: linear-gradient(180deg, hsl(165, 20%, 16%) 0%, hsl(160, 12%, 13%) 100%);
     --gradient-subtle: linear-gradient(180deg, hsl(160, 15%, 10%) 0%, hsl(160, 12%, 12%) 100%);
 
-    --shadow-sm: 0 1px 3px hsl(0 0% 0% / 0.3);
-    --shadow-md: 0 2px 8px hsl(0 0% 0% / 0.4);
-    --shadow-lg: 0 4px 16px hsl(0 0% 0% / 0.5);
+    --shadow-sm: 0px 3px 1.5px 0px hsla(0, 0%, 0%, 0.1);
+    --shadow-md: 0px 3px 4.5px 0px hsla(0, 0%, 0%, 0.1);
+    --shadow-lg: 0px 3px 7.5px 0px hsla(0, 0%, 0%, 0.1);
     --shadow-xl: 0 8px 32px hsl(0 0% 0% / 0.6);
     --shadow-primary: 0 4px 16px hsl(165 40% 45% / 0.25);
     --shadow-glow: 0 0 24px hsl(165 40% 45% / 0.15);
@@ -138,6 +145,10 @@
     --sidebar-accent-foreground: 40 20% 95%;
     --sidebar-border: 160 12% 20%;
     --sidebar-ring: 165 40% 45%;
+    --font-sans: "Open Sans", ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+    --font-serif: "Crimson Pro", ui-serif, Georgia, Cambria, Times New Roman, Times, serif;
+    --font-mono: "SF Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+    --shadow: 0px 3px 3px 0px hsla(0, 0%, 0%, 0.1);
   }
 }
 
