@@ -1,6 +1,14 @@
-import { Shield, LogOut } from "lucide-react";
+import { Shield, LogOut, User, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
@@ -10,7 +18,8 @@ interface HeaderProps {
 export function Header({ className }: HeaderProps) {
   const { user, signOut } = useAuth();
 
-  return <header className={cn("gradient-header px-4 py-4 md:px-6 sticky top-0 z-20 shadow-lg border-b border-primary/20", className)}>
+  return (
+    <header className={cn("gradient-header px-4 py-4 md:px-6 sticky top-0 z-20 shadow-lg border-b border-primary/20", className)}>
       <div className="max-w-6xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-primary-foreground/15 backdrop-blur-sm flex items-center justify-center">
@@ -27,25 +36,38 @@ export function Header({ className }: HeaderProps) {
         </div>
 
         {user && (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              onClick={signOut}
-              className="text-primary-foreground hover:bg-primary-foreground/10 text-xs md:text-sm px-3 py-1.5 h-auto"
-            >
-              {user.email}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={signOut}
-              className="text-primary-foreground hover:bg-primary-foreground/10"
-              title="Sign out"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="text-primary-foreground hover:bg-primary-foreground/10 text-xs md:text-sm px-3 py-1.5 h-auto gap-2"
+              >
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">{user.email}</span>
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-card z-50">
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium">Account</p>
+                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="cursor-pointer">
+                <User className="mr-2 h-4 w-4" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
-    </header>;
+    </header>
+  );
 }
