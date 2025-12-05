@@ -22,33 +22,32 @@ const Index = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryDefinition | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const { user, loading } = useAuth();
+  const {
+    user,
+    loading
+  } = useAuth();
   const navigate = useNavigate();
-
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/auth", { replace: true });
+      navigate("/auth", {
+        replace: true
+      });
     }
   }, [user, loading, navigate]);
-
   const handleCategoryClick = (category: CategoryDefinition) => {
     setSelectedCategory(category);
     setSheetOpen(true);
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+    return <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+      </div>;
   }
-
   if (!user) {
     return null;
   }
   return <div className="min-h-screen bg-background">
-      <Header className="bg-primary" />
+      <Header className="bg-primary shadow-none opacity-100 text-primary-foreground" />
 
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
