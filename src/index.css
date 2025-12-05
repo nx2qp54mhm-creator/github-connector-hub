@@ -59,7 +59,7 @@
     --danger-foreground: 0 70% 35%;
 
     /* Sophisticated gradients */
-    --gradient-header: linear-gradient(135deg, hsl(165, 45%, 32%) 0%, hsl(165, 42%, 38%) 50%, hsl(40, 25%, 90%) 100%);
+    --gradient-header: hsl(165, 45%, 32%);
     --gradient-card-hover: linear-gradient(180deg, hsl(165, 35%, 97%) 0%, hsl(40, 25%, 98%) 100%);
     --gradient-subtle: linear-gradient(180deg, hsl(40, 30%, 96%) 0%, hsl(40, 25%, 94%) 100%);
 
@@ -126,7 +126,7 @@
     --danger-light: 0 40% 18%;
     --danger-foreground: 0 70% 85%;
 
-    --gradient-header: linear-gradient(135deg, hsl(165, 40%, 30%) 0%, hsl(165, 35%, 35%) 50%, hsl(160, 15%, 20%) 100%);
+    --gradient-header: hsl(165, 40%, 30%);
     --gradient-card-hover: linear-gradient(180deg, hsl(165, 20%, 16%) 0%, hsl(160, 12%, 13%) 100%);
     --gradient-subtle: linear-gradient(180deg, hsl(160, 15%, 10%) 0%, hsl(160, 12%, 12%) 100%);
 
