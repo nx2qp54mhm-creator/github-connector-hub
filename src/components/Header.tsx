@@ -1,5 +1,4 @@
 import { Shield, LogOut } from "lucide-react";
-import { useCoverageStore } from "@/hooks/useCoverageStore";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -9,7 +8,6 @@ interface HeaderProps {
 }
 
 export function Header({ className }: HeaderProps) {
-  const totalItems = useCoverageStore(state => state.getTotalItems());
   const { user, signOut } = useAuth();
 
   return <header className={cn("gradient-header px-4 py-4 md:px-6 sticky top-0 z-20 shadow-lg border-b border-primary/20", className)}>
@@ -28,17 +26,15 @@ export function Header({ className }: HeaderProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col items-end gap-1">
-            <div className="px-3 py-1.5 rounded-full bg-primary-foreground/10 backdrop-blur-sm text-primary-foreground text-xs font-medium flex items-center gap-2 border border-primary-foreground/15">
-              <span className="w-1.5 h-1.5 rounded-full bg-success-light" />
-              {totalItems === 0 ? "Setup in progress" : `${totalItems} source${totalItems !== 1 ? "s" : ""}`}
-            </div>
-            <p className="text-xs text-primary-foreground/75 hidden sm:block">
-              {totalItems === 0 ? "Add your first coverage source" : "Profile configured"}
-            </p>
-          </div>
-          {user && (
+        {user && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              onClick={signOut}
+              className="text-primary-foreground hover:bg-primary-foreground/10 text-xs md:text-sm px-3 py-1.5 h-auto"
+            >
+              {user.email}
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -48,8 +44,8 @@ export function Header({ className }: HeaderProps) {
             >
               <LogOut className="h-4 w-4" />
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </header>;
 }
