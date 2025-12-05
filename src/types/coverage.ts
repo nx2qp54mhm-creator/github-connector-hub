@@ -1,0 +1,66 @@
+export type CategoryId =
+  | "travel-rental"
+  | "travel-trip"
+  | "travel-baggage"
+  | "travel-perks"
+  | "purchase-protection"
+  | "purchase-warranty"
+  | "foundational-auto"
+  | "foundational-home";
+
+export type CardIssuer = "Chase" | "American Express";
+export type CardNetwork = "Visa" | "Mastercard" | "American Express";
+
+export interface CreditCard {
+  id: string;
+  name: string;
+  fullName: string;
+  issuer: CardIssuer;
+  network: CardNetwork;
+  annualFee: number;
+  categories: CategoryId[];
+  rental?: {
+    coverageType: "primary" | "secondary";
+    maxCoverage: number;
+    maxDays: number;
+  };
+}
+
+export interface Policy {
+  id: string;
+  name: string;
+  type: "auto" | "home" | "renters" | "other";
+  filename: string;
+  categories: CategoryId[];
+}
+
+export interface CommonPlan {
+  id: string;
+  name: string;
+  categories: CategoryId[];
+}
+
+export interface CategoryGroup {
+  id: string;
+  title: string;
+  subtitle: string;
+  categories: CategoryDefinition[];
+}
+
+export interface CategoryDefinition {
+  id: CategoryId;
+  title: string;
+  subtitle: string;
+  whatsCovered?: string[];
+  whatsNotCovered?: string[];
+  emptyMessage?: string;
+}
+
+export type BadgeStatus = "covered" | "partial" | "none" | "coming";
+
+export interface UserCoverageState {
+  selectedCards: string[];
+  uploadedPolicies: Policy[];
+  addedPlans: CommonPlan[];
+  lastUpdated: string | null;
+}

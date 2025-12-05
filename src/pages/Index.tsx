@@ -1,12 +1,95 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import { Plane, ShoppingCart, Home, Info } from "lucide-react";
+import { Header } from "@/components/Header";
+import { CategoryCard } from "@/components/CategoryCard";
+import { CategoryDetailSheet } from "@/components/CategoryDetailSheet";
+import { CoverageLibrary } from "@/components/CoverageLibrary";
+import { ChatDock } from "@/components/ChatDock";
+import { AddCoverageModal } from "@/components/AddCoverageModal";
+import { AddCoverageCard } from "@/components/AddCoverageCard";
+import { categoryGroups } from "@/data/cardDatabase";
+import { CategoryDefinition } from "@/types/coverage";
+
+const groupIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+  travel: Plane,
+  purchases: ShoppingCart,
+  foundational: Home,
+};
 
 const Index = () => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryDefinition | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const handleCategoryClick = (category: CategoryDefinition) => {
+    setSelectedCategory(category);
+    setSheetOpen(true);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header />
+
+      <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+          {/* Main Column */}
+          <div className="space-y-6">
+            <AddCoverageCard onClick={() => setModalOpen(true)} />
+
+            {categoryGroups.map((group, groupIndex) => {
+              const GroupIcon = groupIcons[group.id];
+              return (
+                <section key={group.id} className="space-y-3 animate-in" style={{ animationDelay: `${groupIndex * 100}ms` }}>
+                  <div className="flex items-center gap-3 px-1">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      {GroupIcon && <GroupIcon className="w-4 h-4 text-primary" />}
+                    </div>
+                    <div>
+                      <h2 className="font-serif text-lg font-semibold text-foreground">{group.title}</h2>
+                      <p className="text-xs text-muted-foreground">{group.subtitle}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {group.categories.map((category) => (
+                      <CategoryCard
+                        key={category.id}
+                        category={category}
+                        onClick={() => handleCategoryClick(category)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+
+          {/* Sidebar */}
+          <aside className="space-y-4 lg:sticky lg:top-24">
+            <ChatDock />
+            <CoverageLibrary />
+
+            <div className="flex items-start gap-2 text-xs text-muted-foreground px-1">
+              <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <p>
+                Coverage details are for informational purposes only. Always verify with your card issuer or insurance provider.
+              </p>
+            </div>
+          </aside>
+        </div>
+      </main>
+
+      <CategoryDetailSheet
+        category={selectedCategory}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onAddCoverage={() => setModalOpen(true)}
+      />
+
+      <AddCoverageModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+      />
     </div>
   );
 };
