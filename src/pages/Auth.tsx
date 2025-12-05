@@ -19,9 +19,52 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const emailResult = z.string().email().safeParse(email);
+    if (!emailResult.success) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setResetLoading(true);
+    const redirectUrl = `${window.location.origin}/reset-password`;
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: redirectUrl,
+    });
+
+    if (error) {
+      toast({
+        title: "Reset failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Check your email",
+        description: "We sent you a password reset link.",
+      });
+    }
+    setResetLoading(false);
+  };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -161,9 +204,19 @@ export default function Auth() {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full" disabled={loading || resetLoading}>
                   {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Sign In
+                </Button>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="w-full text-sm text-muted-foreground"
+                  onClick={handleForgotPassword}
+                  disabled={resetLoading || loading}
+                >
+                  {resetLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Forgot password?
                 </Button>
               </form>
             </TabsContent>
