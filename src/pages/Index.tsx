@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Plane, ShoppingCart, Home, Info } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plane, ShoppingCart, Home, Info, Loader2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { CategoryCard } from "@/components/CategoryCard";
 import { CategoryDetailSheet } from "@/components/CategoryDetailSheet";
@@ -9,6 +10,7 @@ import { AddCoverageModal } from "@/components/AddCoverageModal";
 import { AddCoverageCard } from "@/components/AddCoverageCard";
 import { categoryGroups } from "@/data/cardDatabase";
 import { CategoryDefinition } from "@/types/coverage";
+import { useAuth } from "@/hooks/useAuth";
 const groupIcons: Record<string, React.ComponentType<{
   className?: string;
 }>> = {
@@ -20,10 +22,31 @@ const Index = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryDefinition | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth", { replace: true });
+    }
+  }, [user, loading, navigate]);
+
   const handleCategoryClick = (category: CategoryDefinition) => {
     setSelectedCategory(category);
     setSheetOpen(true);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
   return <div className="min-h-screen bg-background">
       <Header className="bg-primary" />
 
