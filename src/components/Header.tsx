@@ -1,5 +1,7 @@
 import { Shield, LogOut, User, ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,7 +18,11 @@ interface HeaderProps {
 }
 
 export function Header({ className }: HeaderProps) {
+  const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { profile } = useProfile();
+
+  const displayName = profile?.name || user?.email;
 
   return (
     <header className={cn("gradient-header px-4 py-4 md:px-6 sticky top-0 z-20 shadow-lg border-b border-primary/20", className)}>
@@ -43,21 +49,21 @@ export function Header({ className }: HeaderProps) {
                 className="text-primary-foreground hover:bg-primary-foreground/10 text-xs md:text-sm px-3 py-1.5 h-auto gap-2"
               >
                 <User className="h-4 w-4" />
-                <span className="hidden sm:inline">{user.email}</span>
+                <span className="hidden sm:inline max-w-[150px] truncate">{displayName}</span>
                 <ChevronDown className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-card z-50">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">Account</p>
+                  <p className="text-sm font-medium">{profile?.name || "Account"}</p>
                   <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer">
                 <User className="mr-2 h-4 w-4" />
-                Profile
+                Profile Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive focus:text-destructive">
