@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plane, ShoppingCart, Home, Info, Loader2 } from "lucide-react";
+import { Plane, ShoppingCart, Home, Info, Loader2, LayoutGrid } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { Header } from "@/components/Header";
 import { CategoryCard } from "@/components/CategoryCard";
 import { CategoryDetailSheet } from "@/components/CategoryDetailSheet";
@@ -55,26 +56,44 @@ const Index = () => {
           <div className="space-y-6">
             <AddCoverageCard onClick={() => setModalOpen(true)} />
 
-            {categoryGroups.map((group, groupIndex) => {
-            const GroupIcon = groupIcons[group.id];
-            return <section key={group.id} className="space-y-3 animate-in" style={{
-              animationDelay: `${groupIndex * 100}ms`
-            }}>
-                  <div className="flex items-center gap-3 px-1">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      {GroupIcon && <GroupIcon className="w-4 h-4 text-primary" />}
-                    </div>
-                    <div>
-                      <h2 className="font-serif text-lg font-semibold text-foreground">{group.title}</h2>
-                      <p className="text-xs text-muted-foreground">{group.subtitle}</p>
-                    </div>
-                  </div>
+            <Card className="border border-border shadow-soft overflow-hidden">
+              <div className="p-4 border-b border-border">
+                <h3 className="font-semibold flex items-center gap-2 text-xl font-sans">
+                  <LayoutGrid className="w-4 h-4 text-primary" />
+                  Coverage Overview
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Your coverage status by category
+                </p>
+              </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {group.categories.map(category => <CategoryCard key={category.id} category={category} onClick={() => handleCategoryClick(category)} />)}
-                  </div>
-                </section>;
-          })}
+              <div className="p-4 space-y-6">
+                {categoryGroups.map((group, groupIndex) => {
+                  const GroupIcon = groupIcons[group.id];
+                  return (
+                    <section key={group.id} className="space-y-3 animate-in" style={{
+                      animationDelay: `${groupIndex * 100}ms`
+                    }}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          {GroupIcon && <GroupIcon className="w-4 h-4 text-primary" />}
+                        </div>
+                        <div>
+                          <h2 className="font-serif text-lg font-semibold text-foreground">{group.title}</h2>
+                          <p className="text-xs text-muted-foreground">{group.subtitle}</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {group.categories.map(category => (
+                          <CategoryCard key={category.id} category={category} onClick={() => handleCategoryClick(category)} />
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+            </Card>
           </div>
 
           {/* Sidebar */}
