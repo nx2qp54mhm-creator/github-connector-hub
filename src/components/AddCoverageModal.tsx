@@ -25,6 +25,7 @@ export function AddCoverageModal({
 }: AddCoverageModalProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [isUploading, setIsUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [uploadingFileName, setUploadingFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -40,6 +41,7 @@ export function AddCoverageModal({
 
   const resetUploadState = () => {
     setIsUploading(false);
+    setIsProcessing(false);
     setUploadingFileName(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -108,7 +110,7 @@ export function AddCoverageModal({
       }
 
       // Insert record into policy_documents table
-      const { error: dbError } = await supabase
+      const { data: docData, error: dbError } = await supabase
         .from("policy_documents")
         .insert({
           user_id: user.id,
@@ -118,12 +120,39 @@ export function AddCoverageModal({
           file_size: file.size,
           mime_type: file.type,
           processing_status: "pending",
-        });
+        })
+        .select("id")
+        .single();
 
       if (dbError) {
         // If database insert fails, try to delete the uploaded file
         await supabase.storage.from("insurance-documents").remove([filePath]);
         throw new Error(dbError.message);
+      }
+
+      // Switch to processing state
+      setIsUploading(false);
+      setIsProcessing(true);
+
+      toast({
+        title: "Analyzing your policy...",
+        description: "This may take a moment.",
+      });
+
+      // Call the Edge Function to parse the document
+      const { error: parseError } = await supabase.functions.invoke("parse-insurance-document", {
+        body: { document_id: docData.id },
+      });
+
+      if (parseError) {
+        console.error("Parse error:", parseError);
+        toast({
+          title: "Analysis failed",
+          description: parseError.message || "Could not analyze the policy. You can try again later.",
+          variant: "destructive",
+        });
+        resetUploadState();
+        return;
       }
 
       // Also add to local store for immediate UI update
@@ -135,7 +164,7 @@ export function AddCoverageModal({
       };
 
       addPolicy({
-        id: `policy_${timestamp}`,
+        id: docData.id,
         name: file.name.replace(/\.[^/.]+$/, ""),
         type: policyType as "auto" | "home" | "renters" | "other",
         filename: file.name,
@@ -143,8 +172,8 @@ export function AddCoverageModal({
       });
 
       toast({
-        title: "Policy uploaded successfully",
-        description: "Your policy document has been saved.",
+        title: "Policy analyzed successfully!",
+        description: "Your coverage details have been extracted.",
       });
 
       resetUploadState();
@@ -241,15 +270,23 @@ export function AddCoverageModal({
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
+                disabled={isUploading || isProcessing}
                 className={cn(
                   "w-full p-8 border-2 border-dashed border-border rounded-xl transition-colors text-center",
-                  isUploading
+                  (isUploading || isProcessing)
                     ? "opacity-70 cursor-not-allowed"
                     : "hover:border-primary hover:bg-accent/50"
                 )}
               >
-                {isUploading ? (
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="w-10 h-10 mx-auto text-primary mb-3 animate-spin" />
+                    <p className="font-semibold text-foreground">Analyzing policy...</p>
+                    <p className="text-sm text-muted-foreground mt-1 truncate max-w-xs mx-auto">
+                      {uploadingFileName}
+                    </p>
+                  </>
+                ) : isUploading ? (
                   <>
                     <Loader2 className="w-10 h-10 mx-auto text-primary mb-3 animate-spin" />
                     <p className="font-semibold text-foreground">Uploading...</p>
