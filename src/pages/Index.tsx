@@ -4,6 +4,7 @@ import { Plane, ShoppingCart, Home, Info, Loader2, LayoutGrid } from "lucide-rea
 import { Card } from "@/components/ui/card";
 import { Header } from "@/components/Header";
 import { CategoryCard } from "@/components/CategoryCard";
+import { AutoInsuranceCard } from "@/components/AutoInsuranceCard";
 import { CategoryDetailSheet } from "@/components/CategoryDetailSheet";
 import { CoverageLibrary } from "@/components/CoverageLibrary";
 import { ChatDock } from "@/components/ChatDock";
@@ -86,7 +87,19 @@ const Index = () => {
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {group.categories.map(category => (
-                          <CategoryCard key={category.id} category={category} onClick={() => handleCategoryClick(category)} />
+                          category.id === "foundational-auto" ? (
+                            <AutoInsuranceCard 
+                              key={category.id} 
+                              category={category} 
+                              onClick={() => handleCategoryClick(category)} 
+                            />
+                          ) : (
+                            <CategoryCard 
+                              key={category.id} 
+                              category={category} 
+                              onClick={() => handleCategoryClick(category)} 
+                            />
+                          )
                         ))}
                       </div>
                     </section>
