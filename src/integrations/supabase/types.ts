@@ -14,6 +14,110 @@ export type Database = {
   }
   public: {
     Tables: {
+      auto_policies: {
+        Row: {
+          bodily_injury_per_accident: number | null
+          bodily_injury_per_person: number | null
+          collision_covered: boolean | null
+          collision_deductible: number | null
+          comprehensive_covered: boolean | null
+          comprehensive_deductible: number | null
+          coverage_end_date: string | null
+          coverage_start_date: string | null
+          created_at: string | null
+          document_id: string | null
+          id: string
+          insurance_company: string | null
+          medical_payments_covered: boolean | null
+          medical_payments_limit: number | null
+          policy_holder_name: string | null
+          policy_number: string | null
+          premium_amount: number | null
+          premium_frequency: string | null
+          property_damage_limit: number | null
+          raw_extracted_data: Json | null
+          rental_reimbursement_covered: boolean | null
+          rental_reimbursement_daily: number | null
+          rental_reimbursement_max: number | null
+          roadside_assistance_covered: boolean | null
+          uninsured_motorist_covered: boolean | null
+          uninsured_motorist_per_accident: number | null
+          uninsured_motorist_per_person: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bodily_injury_per_accident?: number | null
+          bodily_injury_per_person?: number | null
+          collision_covered?: boolean | null
+          collision_deductible?: number | null
+          comprehensive_covered?: boolean | null
+          comprehensive_deductible?: number | null
+          coverage_end_date?: string | null
+          coverage_start_date?: string | null
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          insurance_company?: string | null
+          medical_payments_covered?: boolean | null
+          medical_payments_limit?: number | null
+          policy_holder_name?: string | null
+          policy_number?: string | null
+          premium_amount?: number | null
+          premium_frequency?: string | null
+          property_damage_limit?: number | null
+          raw_extracted_data?: Json | null
+          rental_reimbursement_covered?: boolean | null
+          rental_reimbursement_daily?: number | null
+          rental_reimbursement_max?: number | null
+          roadside_assistance_covered?: boolean | null
+          uninsured_motorist_covered?: boolean | null
+          uninsured_motorist_per_accident?: number | null
+          uninsured_motorist_per_person?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bodily_injury_per_accident?: number | null
+          bodily_injury_per_person?: number | null
+          collision_covered?: boolean | null
+          collision_deductible?: number | null
+          comprehensive_covered?: boolean | null
+          comprehensive_deductible?: number | null
+          coverage_end_date?: string | null
+          coverage_start_date?: string | null
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          insurance_company?: string | null
+          medical_payments_covered?: boolean | null
+          medical_payments_limit?: number | null
+          policy_holder_name?: string | null
+          policy_number?: string | null
+          premium_amount?: number | null
+          premium_frequency?: string | null
+          property_damage_limit?: number | null
+          raw_extracted_data?: Json | null
+          rental_reimbursement_covered?: boolean | null
+          rental_reimbursement_daily?: number | null
+          rental_reimbursement_max?: number | null
+          roadside_assistance_covered?: boolean | null
+          uninsured_motorist_covered?: boolean | null
+          uninsured_motorist_per_accident?: number | null
+          uninsured_motorist_per_person?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_policies_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "policy_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       policy_documents: {
         Row: {
           created_at: string | null
