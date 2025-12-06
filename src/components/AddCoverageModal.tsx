@@ -140,7 +140,7 @@ export function AddCoverageModal({
       });
 
       // Call the Edge Function to parse the document
-      const { error: parseError } = await supabase.functions.invoke("parse-insurance-document", {
+      const { error: parseError } = await supabase.functions.invoke("smart-worker", {
         body: { document_id: docData.id },
       });
 
