@@ -15,8 +15,17 @@ export interface AutoPolicy {
   bodily_injury_per_person: number | null;
   bodily_injury_per_accident: number | null;
   property_damage_limit: number | null;
+  medical_payments_covered: boolean | null;
+  medical_payments_limit: number | null;
+  uninsured_motorist_covered: boolean | null;
+  uninsured_motorist_per_person: number | null;
+  uninsured_motorist_per_accident: number | null;
   rental_reimbursement_covered: boolean | null;
+  rental_reimbursement_daily: number | null;
+  rental_reimbursement_max: number | null;
   roadside_assistance_covered: boolean | null;
+  premium_amount: number | null;
+  premium_frequency: string | null;
 }
 
 export function useAutoPolicy() {

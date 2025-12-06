@@ -1,10 +1,12 @@
-import { Plus, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
+import { Plus, CheckCircle2, XCircle } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CategoryIcon } from "@/components/icons/CategoryIcon";
 import { CategoryDefinition } from "@/types/coverage";
 import { useCoverageStore } from "@/hooks/useCoverageStore";
+import { useAutoPolicy } from "@/hooks/useAutoPolicy";
+import { AutoPolicyDetails } from "@/components/AutoPolicyDetails";
 
 interface CategoryDetailSheetProps {
   category: CategoryDefinition | null;
@@ -21,12 +23,15 @@ export function CategoryDetailSheet({
 }: CategoryDetailSheetProps) {
   const getCoverageStatus = useCoverageStore((state) => state.getCoverageStatus);
   const getSourcesForCategory = useCoverageStore((state) => state.getSourcesForCategory);
+  const { autoPolicy } = useAutoPolicy();
 
   if (!category) return null;
 
-  const status = getCoverageStatus(category.id);
+  const isAutoInsurance = category.id === "foundational-auto";
+  const status = isAutoInsurance && autoPolicy ? "covered" : getCoverageStatus(category.id);
   const { cards, policies, plans } = getSourcesForCategory(category.id);
   const sourceCount = cards.length + policies.length + plans.length;
+  const hasAutoPolicy = isAutoInsurance && autoPolicy;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -51,8 +56,13 @@ export function CategoryDetailSheet({
         </SheetHeader>
 
         <div className="py-6 space-y-6">
-          {/* Coverage Sources */}
-          {sourceCount > 0 ? (
+          {/* Auto Insurance Policy Details */}
+          {hasAutoPolicy && (
+            <AutoPolicyDetails policy={autoPolicy} />
+          )}
+
+          {/* Coverage Sources (for non-auto or when no auto policy) */}
+          {!hasAutoPolicy && sourceCount > 0 && (
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-foreground">
                 Your Coverage Sources
@@ -84,7 +94,10 @@ export function CategoryDetailSheet({
                 ))}
               </div>
             </div>
-          ) : (
+          )}
+
+          {/* Empty state for non-auto categories */}
+          {!hasAutoPolicy && sourceCount === 0 && (
             <div className="p-4 rounded-xl bg-muted/50 border border-dashed border-border">
               <p className="text-sm text-muted-foreground text-center">
                 {category.emptyMessage || "No coverage sources added yet."}
@@ -105,7 +118,7 @@ export function CategoryDetailSheet({
           )}
 
           {/* What's Covered */}
-          {category.whatsCovered && category.whatsCovered.length > 0 && (
+          {category.whatsCovered && category.whatsCovered.length > 0 && !hasAutoPolicy && (
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-success" />
@@ -125,7 +138,7 @@ export function CategoryDetailSheet({
           )}
 
           {/* What's Not Covered */}
-          {category.whatsNotCovered && category.whatsNotCovered.length > 0 && (
+          {category.whatsNotCovered && category.whatsNotCovered.length > 0 && !hasAutoPolicy && (
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <XCircle className="w-4 h-4 text-danger" />
@@ -148,7 +161,6 @@ export function CategoryDetailSheet({
           {category.id === "travel-rental" && cards.length > 0 && (
             <div className="p-4 rounded-xl bg-accent/50 border border-primary/10">
               <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-warning" />
                 Coverage Details
               </h4>
               <div className="space-y-2">
@@ -177,7 +189,7 @@ export function CategoryDetailSheet({
             className="w-full"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add more coverage
+            {hasAutoPolicy ? "Update policy" : "Add coverage"}
           </Button>
         </div>
       </SheetContent>
