@@ -1,4 +1,4 @@
-import { Check, X, Shield, Calendar, DollarSign, FileText } from "lucide-react";
+import { Check, X, Shield, Calendar, FileText } from "lucide-react";
 import { AutoPolicy } from "@/hooks/useAutoPolicy";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -56,10 +56,9 @@ interface CoverageRowProps {
   label: string;
   value: string | null;
   covered: boolean;
-  helperText?: string;
 }
 
-function CoverageRow({ label, value, covered, helperText }: CoverageRowProps) {
+function CoverageRow({ label, value, covered }: CoverageRowProps) {
   return (
     <div className="py-2 border-b border-border last:border-b-0">
       <div className="flex items-center justify-between">
@@ -76,9 +75,6 @@ function CoverageRow({ label, value, covered, helperText }: CoverageRowProps) {
           {value}
         </span>
       </div>
-      {helperText && (
-        <p className="text-xs text-muted-foreground mt-1 text-right">{helperText}</p>
-      )}
     </div>
   );
 }
@@ -91,7 +87,7 @@ export function AutoPolicyDetails({ policy }: AutoPolicyDetailsProps) {
   );
 
   // Build coverage rows
-  const coverageRows: { label: string; value: string; covered: boolean; helperText?: string }[] = [];
+  const coverageRows: { label: string; value: string; covered: boolean }[] = [];
 
   // Collision
   if (policy.collision_covered !== null) {
@@ -115,16 +111,26 @@ export function AutoPolicyDetails({ policy }: AutoPolicyDetailsProps) {
     coverageRows.push({ label: "Comprehensive", value, covered: policy.comprehensive_covered });
   }
 
-  // Liability
-  if (policy.bodily_injury_per_person || policy.bodily_injury_per_accident || policy.property_damage_limit) {
-    const bi1 = policy.bodily_injury_per_person ? `$${policy.bodily_injury_per_person / 1000}K` : "—";
-    const bi2 = policy.bodily_injury_per_accident ? `$${policy.bodily_injury_per_accident / 1000}K` : "—";
-    const pd = policy.property_damage_limit ? `$${policy.property_damage_limit / 1000}K` : "—";
+  // Liability - Split into 3 separate rows
+  if (policy.bodily_injury_per_person) {
     coverageRows.push({ 
-      label: "Liability", 
-      value: `${bi1} / ${bi2} / ${pd}`, 
-      covered: true,
-      helperText: "Bodily injury per person / per accident / property damage"
+      label: "Bodily injury (per person)", 
+      value: formatCurrency(policy.bodily_injury_per_person), 
+      covered: true 
+    });
+  }
+  if (policy.bodily_injury_per_accident) {
+    coverageRows.push({ 
+      label: "Bodily injury (per accident)", 
+      value: formatCurrency(policy.bodily_injury_per_accident), 
+      covered: true 
+    });
+  }
+  if (policy.property_damage_limit) {
+    coverageRows.push({ 
+      label: "Property damage", 
+      value: formatCurrency(policy.property_damage_limit), 
+      covered: true 
     });
   }
 
@@ -139,17 +145,28 @@ export function AutoPolicyDetails({ policy }: AutoPolicyDetailsProps) {
     coverageRows.push({ label: "Medical payments", value, covered: policy.medical_payments_covered });
   }
 
-  // Uninsured motorist
-  if (policy.uninsured_motorist_covered !== null) {
-    let value = "Not covered";
-    if (policy.uninsured_motorist_covered) {
-      if (policy.uninsured_motorist_per_person && policy.uninsured_motorist_per_accident) {
-        value = `${formatCurrency(policy.uninsured_motorist_per_person)}/${formatCurrency(policy.uninsured_motorist_per_accident)}`;
-      } else {
-        value = "Covered";
-      }
+  // Uninsured motorist - Split into 2 separate rows
+  if (policy.uninsured_motorist_covered) {
+    if (policy.uninsured_motorist_per_person) {
+      coverageRows.push({ 
+        label: "Uninsured motorist (per person)", 
+        value: formatCurrency(policy.uninsured_motorist_per_person), 
+        covered: true 
+      });
     }
-    coverageRows.push({ label: "Uninsured motorist", value, covered: policy.uninsured_motorist_covered });
+    if (policy.uninsured_motorist_per_accident) {
+      coverageRows.push({ 
+        label: "Uninsured motorist (per accident)", 
+        value: formatCurrency(policy.uninsured_motorist_per_accident), 
+        covered: true 
+      });
+    }
+  } else if (policy.uninsured_motorist_covered === false) {
+    coverageRows.push({ 
+      label: "Uninsured motorist", 
+      value: "Not covered", 
+      covered: false 
+    });
   }
 
   // Rental reimbursement
@@ -184,33 +201,34 @@ export function AutoPolicyDetails({ policy }: AutoPolicyDetailsProps) {
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
             <Shield className="w-5 h-5 text-primary" />
           </div>
-          <div>
+          <div className="flex-1">
             <h4 className="font-semibold text-foreground">
               {policy.insurance_company || "Auto Insurance Policy"}
             </h4>
-            {policy.policy_number && (
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <FileText className="w-3 h-3" />
-                Policy #{policy.policy_number}
-              </p>
+            {(policy.policy_number || premium) && (
+              <div className="flex items-center justify-between gap-2">
+                {policy.policy_number && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <FileText className="w-3 h-3" />
+                    Policy #{policy.policy_number}
+                  </p>
+                )}
+                {premium && (
+                  <span className="text-lg font-bold text-foreground">
+                    {premium}
+                  </span>
+                )}
+              </div>
             )}
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-4 text-sm">
-          {dateRange && (
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Calendar className="w-4 h-4" />
-              <span>{dateRange}</span>
-            </div>
-          )}
-          {premium && (
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <DollarSign className="w-4 h-4" />
-              <span>{premium}</span>
-            </div>
-          )}
-        </div>
+        {dateRange && (
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground pl-[52px]">
+            <Calendar className="w-4 h-4" />
+            <span>{dateRange}</span>
+          </div>
+        )}
       </div>
 
       {/* Coverage Details */}
@@ -220,7 +238,7 @@ export function AutoPolicyDetails({ policy }: AutoPolicyDetailsProps) {
           <div className="px-4">
             {coverageRows.length > 0 ? (
               coverageRows.map((row, i) => (
-                <CoverageRow key={i} label={row.label} value={row.value} covered={row.covered} helperText={row.helperText} />
+                <CoverageRow key={i} label={row.label} value={row.value} covered={row.covered} />
               ))
             ) : (
               <p className="py-4 text-sm text-muted-foreground text-center">
