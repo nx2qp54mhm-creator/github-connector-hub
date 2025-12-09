@@ -4,6 +4,7 @@ import { useAuth } from "./useAuth";
 
 export interface AutoPolicy {
   id: string;
+  document_id: string | null;
   insurance_company: string | null;
   policy_number: string | null;
   coverage_start_date: string | null;
