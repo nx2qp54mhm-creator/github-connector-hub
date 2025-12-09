@@ -251,48 +251,66 @@ export function CategoryDetailSheet({
                 
                 setIsDeleting(true);
                 try {
-                  // Get the document info first to get the file path
-                  const { data: docData } = await supabase
-                    .from('policy_documents')
-                    .select('file_path')
-                    .eq('id', autoPolicy.document_id)
-                    .maybeSingle();
+                  // Step 1: Get the document info first to get the file path
+                  let filePath: string | null = null;
+                  if (autoPolicy.document_id) {
+                    const { data: docData, error: docFetchError } = await supabase
+                      .from('policy_documents')
+                      .select('file_path')
+                      .eq('id', autoPolicy.document_id)
+                      .maybeSingle();
+                    
+                    if (docFetchError) {
+                      console.error('Error fetching document:', docFetchError);
+                    }
+                    filePath = docData?.file_path ?? null;
+                  }
 
-                  // Delete from auto_policies table
+                  // Step 2: Delete from auto_policies table FIRST
                   const { error: policyError } = await supabase
                     .from('auto_policies')
                     .delete()
                     .eq('id', autoPolicy.id);
 
-                  if (policyError) throw policyError;
+                  if (policyError) {
+                    throw new Error(`Failed to delete policy: ${policyError.message}`);
+                  }
 
-                  // Delete from policy_documents table
+                  // Step 3: Delete from policy_documents table SECOND
                   if (autoPolicy.document_id) {
                     const { error: docError } = await supabase
                       .from('policy_documents')
                       .delete()
                       .eq('id', autoPolicy.document_id);
 
-                    if (docError) console.error('Error deleting document record:', docError);
+                    if (docError) {
+                      console.error('Error deleting document record:', docError);
+                    }
                   }
 
-                  // Delete from storage bucket
-                  if (docData?.file_path) {
+                  // Step 4: Delete the file from storage LAST
+                  if (filePath) {
                     const { error: storageError } = await supabase
                       .storage
                       .from('insurance-documents')
-                      .remove([docData.file_path]);
+                      .remove([filePath]);
 
-                    if (storageError) console.error('Error deleting file from storage:', storageError);
+                    if (storageError) {
+                      console.error('Error deleting file from storage:', storageError);
+                    }
                   }
 
-                  toast.success('Policy deleted');
+                  // Close dialogs first, then refetch to update UI
                   setShowDeleteDialog(false);
                   onOpenChange(false);
-                  refetchAutoPolicy();
+                  
+                  // Await the refetch to ensure state updates
+                  await refetchAutoPolicy();
+                  
+                  toast.success('Policy deleted');
                 } catch (error) {
                   console.error('Error deleting policy:', error);
-                  toast.error('Failed to delete policy');
+                  toast.error(error instanceof Error ? error.message : 'Failed to delete policy');
                 } finally {
                   setIsDeleting(false);
                 }

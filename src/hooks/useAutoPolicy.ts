@@ -60,20 +60,25 @@ export function useAutoPolicy() {
     fetchAutoPolicy();
   }, [user]);
 
-  return { autoPolicy, loading, refetch: () => {
+  const refetch = async () => {
     setLoading(true);
-    if (user) {
-      supabase
-        .from("auto_policies")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle()
-        .then(({ data }) => {
-          setAutoPolicy(data);
-          setLoading(false);
-        });
+    if (!user) {
+      setAutoPolicy(null);
+      setLoading(false);
+      return;
     }
-  }};
+    
+    const { data } = await supabase
+      .from("auto_policies")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    setAutoPolicy(data);
+    setLoading(false);
+  };
+
+  return { autoPolicy, loading, refetch };
 }
