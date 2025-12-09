@@ -1,5 +1,56 @@
 import { CreditCard, CategoryGroup, CategoryDefinition, CommonPlan } from "@/types/coverage";
 
+const chaseExclusions = {
+  what_is_not_covered: [
+    "Liability for injuries to any person",
+    "Liability for damage to other vehicles or property",
+    "Personal belongings inside the vehicle",
+    "Damage from off-road driving",
+    "Damage while driving under the influence",
+    "Damage from racing or speed contests",
+    "Wear and tear, gradual deterioration, or mechanical breakdown",
+    "Damage from acts of war or nuclear hazards",
+    "Loss of personal items or cash",
+  ],
+  vehicle_exclusions: [
+    "Antique vehicles (over 20 years old or not manufactured for 10+ years)",
+    "Motorcycles, mopeds, motorbikes",
+    "Trucks, pickups, or cargo vehicles",
+    "Vans designed to carry more than 8 passengers",
+    "Exotic or luxury vehicles (Ferrari, Lamborghini, Porsche, etc.)",
+    "Recreational vehicles, campers, or trailers",
+    "Off-road vehicles (ATVs, dune buggies, etc.)",
+  ],
+  country_exclusions: ["Israel", "Jamaica", "Republic of Ireland", "Northern Ireland"],
+  country_notes: "Coverage applies in most countries but is excluded in these specific locations. Always verify with your card issuer before renting.",
+};
+
+const amexExclusions = {
+  what_is_not_covered: [
+    "Liability for bodily injury or property damage to third parties",
+    "Personal effects or belongings in the vehicle",
+    "Expenses resulting from off-road operation",
+    "Damage while vehicle is operated by an unauthorized driver",
+    "Damage from driving while intoxicated",
+    "Damage from participating in any racing activity",
+    "Pre-existing damage to the rental vehicle",
+    "Administrative, diminution of value, or loss-of-use charges (may have limits)",
+    "Tire damage (unless caused by a covered accident)",
+  ],
+  vehicle_exclusions: [
+    "Antique automobiles",
+    "Motorcycles, mopeds, or motorbikes of any kind",
+    "Any truck, including pickup trucks",
+    "Full-size vans",
+    "Exotic or expensive vehicles",
+    "Limousines",
+    "Off-road vehicles",
+    "Vehicles with an MSRP over $100,000",
+  ],
+  country_exclusions: [] as string[],
+  country_notes: "Coverage generally available worldwide where American Express is accepted, but always confirm with your card issuer.",
+};
+
 export const cardDatabase: Record<string, CreditCard[]> = {
   chase: [
     {
@@ -11,6 +62,7 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       annualFee: 795,
       categories: ["travel-rental", "travel-trip", "travel-baggage", "travel-perks", "purchase-protection"],
       rental: { coverageType: "primary", maxCoverage: 75000, maxDays: 31 },
+      rentalExclusions: chaseExclusions,
     },
     {
       id: "chase_sapphire_preferred",
@@ -21,6 +73,7 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       annualFee: 95,
       categories: ["travel-rental", "travel-trip", "travel-baggage", "purchase-protection"],
       rental: { coverageType: "primary", maxCoverage: 60000, maxDays: 31 },
+      rentalExclusions: chaseExclusions,
     },
     {
       id: "chase_freedom_unlimited",
@@ -31,6 +84,7 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       annualFee: 0,
       categories: ["travel-rental", "purchase-protection", "purchase-warranty"],
       rental: { coverageType: "secondary", maxCoverage: 50000, maxDays: 15 },
+      rentalExclusions: chaseExclusions,
     },
     {
       id: "chase_freedom_flex",
@@ -41,6 +95,7 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       annualFee: 0,
       categories: ["travel-rental", "purchase-protection", "purchase-warranty"],
       rental: { coverageType: "secondary", maxCoverage: 50000, maxDays: 15 },
+      rentalExclusions: chaseExclusions,
     },
     {
       id: "chase_ink_preferred",
@@ -51,6 +106,7 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       annualFee: 95,
       categories: ["travel-rental", "travel-trip", "purchase-protection"],
       rental: { coverageType: "primary", maxCoverage: 75000, maxDays: 31 },
+      rentalExclusions: chaseExclusions,
     },
   ],
   amex: [
@@ -63,6 +119,7 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       annualFee: 695,
       categories: ["travel-rental", "travel-trip", "travel-baggage", "travel-perks", "purchase-protection"],
       rental: { coverageType: "secondary", maxCoverage: 75000, maxDays: 30 },
+      rentalExclusions: amexExclusions,
     },
     {
       id: "amex_gold",
@@ -73,6 +130,7 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       annualFee: 250,
       categories: ["travel-rental", "travel-trip", "travel-baggage", "purchase-protection"],
       rental: { coverageType: "secondary", maxCoverage: 50000, maxDays: 30 },
+      rentalExclusions: amexExclusions,
     },
     {
       id: "amex_green",
@@ -83,6 +141,7 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       annualFee: 150,
       categories: ["travel-rental", "travel-trip", "travel-baggage"],
       rental: { coverageType: "secondary", maxCoverage: 50000, maxDays: 30 },
+      rentalExclusions: amexExclusions,
     },
     {
       id: "amex_business_platinum",
@@ -93,6 +152,7 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       annualFee: 695,
       categories: ["travel-rental", "travel-trip", "travel-perks", "purchase-protection"],
       rental: { coverageType: "secondary", maxCoverage: 75000, maxDays: 42 },
+      rentalExclusions: amexExclusions,
     },
     {
       id: "amex_delta_reserve",
@@ -103,6 +163,7 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       annualFee: 650,
       categories: ["travel-rental", "travel-trip", "travel-baggage", "travel-perks"],
       rental: { coverageType: "secondary", maxCoverage: 75000, maxDays: 30 },
+      rentalExclusions: amexExclusions,
     },
     {
       id: "amex_delta_gold",
@@ -113,6 +174,7 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       annualFee: 150,
       categories: ["travel-rental", "travel-trip", "travel-baggage"],
       rental: { coverageType: "secondary", maxCoverage: 50000, maxDays: 30 },
+      rentalExclusions: amexExclusions,
     },
   ],
 };

@@ -11,6 +11,13 @@ export type CategoryId =
 export type CardIssuer = "Chase" | "American Express";
 export type CardNetwork = "Visa" | "Mastercard" | "American Express";
 
+export interface RentalExclusions {
+  what_is_not_covered: string[];
+  vehicle_exclusions: string[];
+  country_exclusions: string[];
+  country_notes?: string;
+}
+
 export interface CreditCard {
   id: string;
   name: string;
@@ -24,6 +31,7 @@ export interface CreditCard {
     maxCoverage: number;
     maxDays: number;
   };
+  rentalExclusions?: RentalExclusions;
 }
 
 export interface Policy {
