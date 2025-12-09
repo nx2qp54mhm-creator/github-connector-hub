@@ -1,4 +1,5 @@
-import { Plus, CheckCircle2, XCircle } from "lucide-react";
+import { useState } from "react";
+import { Plus, CheckCircle2, XCircle, Trash2, RefreshCw } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -7,6 +8,18 @@ import { CategoryDefinition } from "@/types/coverage";
 import { useCoverageStore } from "@/hooks/useCoverageStore";
 import { useAutoPolicy } from "@/hooks/useAutoPolicy";
 import { AutoPolicyDetails } from "@/components/AutoPolicyDetails";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface CategoryDetailSheetProps {
   category: CategoryDefinition | null;
@@ -23,7 +36,9 @@ export function CategoryDetailSheet({
 }: CategoryDetailSheetProps) {
   const getCoverageStatus = useCoverageStore((state) => state.getCoverageStatus);
   const getSourcesForCategory = useCoverageStore((state) => state.getSourcesForCategory);
-  const { autoPolicy } = useAutoPolicy();
+  const { autoPolicy, refetch: refetchAutoPolicy } = useAutoPolicy();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!category) return null;
 
@@ -181,18 +196,114 @@ export function CategoryDetailSheet({
 
         {/* Footer Actions */}
         <div className="pt-4 border-t border-border">
-          <Button
-            onClick={() => {
-              onOpenChange(false);
-              setTimeout(onAddCoverage, 300);
-            }}
-            className="w-full"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {hasAutoPolicy ? "Update policy" : "Add coverage"}
-          </Button>
+          {hasAutoPolicy ? (
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteDialog(true)}
+                className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete policy
+              </Button>
+              <Button
+                onClick={() => {
+                  onOpenChange(false);
+                  setTimeout(onAddCoverage, 300);
+                }}
+                className="flex-1"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Replace policy
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={() => {
+                onOpenChange(false);
+                setTimeout(onAddCoverage, 300);
+              }}
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add coverage
+            </Button>
+          )}
         </div>
       </SheetContent>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete policy?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this policy? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isDeleting}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!autoPolicy) return;
+                
+                setIsDeleting(true);
+                try {
+                  // Get the document info first to get the file path
+                  const { data: docData } = await supabase
+                    .from('policy_documents')
+                    .select('file_path')
+                    .eq('id', autoPolicy.document_id)
+                    .maybeSingle();
+
+                  // Delete from auto_policies table
+                  const { error: policyError } = await supabase
+                    .from('auto_policies')
+                    .delete()
+                    .eq('id', autoPolicy.id);
+
+                  if (policyError) throw policyError;
+
+                  // Delete from policy_documents table
+                  if (autoPolicy.document_id) {
+                    const { error: docError } = await supabase
+                      .from('policy_documents')
+                      .delete()
+                      .eq('id', autoPolicy.document_id);
+
+                    if (docError) console.error('Error deleting document record:', docError);
+                  }
+
+                  // Delete from storage bucket
+                  if (docData?.file_path) {
+                    const { error: storageError } = await supabase
+                      .storage
+                      .from('insurance-documents')
+                      .remove([docData.file_path]);
+
+                    if (storageError) console.error('Error deleting file from storage:', storageError);
+                  }
+
+                  toast.success('Policy deleted');
+                  setShowDeleteDialog(false);
+                  onOpenChange(false);
+                  refetchAutoPolicy();
+                } catch (error) {
+                  console.error('Error deleting policy:', error);
+                  toast.error('Failed to delete policy');
+                } finally {
+                  setIsDeleting(false);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 }

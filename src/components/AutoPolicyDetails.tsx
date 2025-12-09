@@ -27,36 +27,58 @@ function formatDateRange(startDate: string | null, endDate: string | null): stri
   }
 }
 
+function formatFrequency(frequency: string | null): string {
+  if (!frequency) return "";
+  switch (frequency.toLowerCase()) {
+    case "six_month":
+    case "6_month":
+    case "semi_annual":
+      return " / 6 months";
+    case "monthly":
+      return " / month";
+    case "annual":
+    case "yearly":
+      return " / year";
+    case "quarterly":
+      return " / quarter";
+    default:
+      return ` / ${frequency}`;
+  }
+}
+
 function formatPremium(amount: number | null, frequency: string | null): string | null {
   if (!amount) return null;
   const formattedAmount = formatCurrency(amount);
-  if (frequency) {
-    return `${formattedAmount}/${frequency}`;
-  }
-  return formattedAmount;
+  return `${formattedAmount}${formatFrequency(frequency)}`;
 }
 
 interface CoverageRowProps {
   label: string;
   value: string | null;
   covered: boolean;
+  helperText?: string;
 }
 
-function CoverageRow({ label, value, covered }: CoverageRowProps) {
+function CoverageRow({ label, value, covered, helperText }: CoverageRowProps) {
   return (
-    <div className="flex items-center justify-between py-2 border-b border-border last:border-b-0">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className={cn(
-        "flex items-center gap-1.5 text-sm font-medium",
-        covered ? "text-primary" : "text-muted-foreground"
-      )}>
-        {covered ? (
-          <Check className="w-4 h-4" />
-        ) : (
-          <X className="w-4 h-4" />
-        )}
-        {value}
-      </span>
+    <div className="py-2 border-b border-border last:border-b-0">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">{label}</span>
+        <span className={cn(
+          "flex items-center gap-1.5 text-sm font-medium",
+          covered ? "text-primary" : "text-muted-foreground"
+        )}>
+          {covered ? (
+            <Check className="w-4 h-4" />
+          ) : (
+            <X className="w-4 h-4" />
+          )}
+          {value}
+        </span>
+      </div>
+      {helperText && (
+        <p className="text-xs text-muted-foreground mt-1 text-right">{helperText}</p>
+      )}
     </div>
   );
 }
@@ -69,7 +91,7 @@ export function AutoPolicyDetails({ policy }: AutoPolicyDetailsProps) {
   );
 
   // Build coverage rows
-  const coverageRows: { label: string; value: string; covered: boolean }[] = [];
+  const coverageRows: { label: string; value: string; covered: boolean; helperText?: string }[] = [];
 
   // Collision
   if (policy.collision_covered !== null) {
@@ -95,13 +117,14 @@ export function AutoPolicyDetails({ policy }: AutoPolicyDetailsProps) {
 
   // Liability
   if (policy.bodily_injury_per_person || policy.bodily_injury_per_accident || policy.property_damage_limit) {
-    const bi1 = policy.bodily_injury_per_person ? policy.bodily_injury_per_person / 1000 : "—";
-    const bi2 = policy.bodily_injury_per_accident ? policy.bodily_injury_per_accident / 1000 : "—";
-    const pd = policy.property_damage_limit ? policy.property_damage_limit / 1000 : "—";
+    const bi1 = policy.bodily_injury_per_person ? `$${policy.bodily_injury_per_person / 1000}K` : "—";
+    const bi2 = policy.bodily_injury_per_accident ? `$${policy.bodily_injury_per_accident / 1000}K` : "—";
+    const pd = policy.property_damage_limit ? `$${policy.property_damage_limit / 1000}K` : "—";
     coverageRows.push({ 
-      label: "Liability (BI/PD)", 
-      value: `${bi1}/${bi2}/${pd}K`, 
-      covered: true 
+      label: "Liability", 
+      value: `${bi1} / ${bi2} / ${pd}`, 
+      covered: true,
+      helperText: "Bodily injury per person / per accident / property damage"
     });
   }
 
@@ -197,7 +220,7 @@ export function AutoPolicyDetails({ policy }: AutoPolicyDetailsProps) {
           <div className="px-4">
             {coverageRows.length > 0 ? (
               coverageRows.map((row, i) => (
-                <CoverageRow key={i} {...row} />
+                <CoverageRow key={i} label={row.label} value={row.value} covered={row.covered} helperText={row.helperText} />
               ))
             ) : (
               <p className="py-4 text-sm text-muted-foreground text-center">
