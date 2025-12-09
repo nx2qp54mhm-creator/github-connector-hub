@@ -56,12 +56,13 @@ interface CoverageRowProps {
   label: string;
   value: string | null;
   covered: boolean;
+  indented?: boolean;
 }
 
-function CoverageRow({ label, value, covered }: CoverageRowProps) {
+function CoverageRow({ label, value, covered, indented }: CoverageRowProps) {
   return (
     <div className="py-2 border-b border-border last:border-b-0">
-      <div className="flex items-center justify-between">
+      <div className={cn("flex items-center justify-between", indented && "pl-4")}>
         <span className="text-sm text-muted-foreground">{label}</span>
         <span className={cn(
           "flex items-center gap-1.5 text-sm font-medium",
@@ -79,6 +80,14 @@ function CoverageRow({ label, value, covered }: CoverageRowProps) {
   );
 }
 
+function SectionHeader({ label }: { label: string }) {
+  return (
+    <div className="pt-3 pb-2 border-b border-border">
+      <span className="text-sm font-semibold text-foreground">{label}</span>
+    </div>
+  );
+}
+
 export function AutoPolicyDetails({ policy }: AutoPolicyDetailsProps) {
   const dateRange = formatDateRange(policy.coverage_start_date, policy.coverage_end_date);
   const premium = formatPremium(
@@ -86,112 +95,12 @@ export function AutoPolicyDetails({ policy }: AutoPolicyDetailsProps) {
     policy.premium_frequency
   );
 
-  // Build coverage rows
-  const coverageRows: { label: string; value: string; covered: boolean }[] = [];
-
-  // Collision
-  if (policy.collision_covered !== null) {
-    let value = "Not covered";
-    if (policy.collision_covered) {
-      value = policy.collision_deductible 
-        ? `${formatCurrency(policy.collision_deductible)} deductible`
-        : "Covered";
-    }
-    coverageRows.push({ label: "Collision", value, covered: policy.collision_covered });
-  }
-
-  // Comprehensive
-  if (policy.comprehensive_covered !== null) {
-    let value = "Not covered";
-    if (policy.comprehensive_covered) {
-      value = policy.comprehensive_deductible 
-        ? `${formatCurrency(policy.comprehensive_deductible)} deductible`
-        : "Covered";
-    }
-    coverageRows.push({ label: "Comprehensive", value, covered: policy.comprehensive_covered });
-  }
-
-  // Liability - Split into 3 separate rows
-  if (policy.bodily_injury_per_person) {
-    coverageRows.push({ 
-      label: "Bodily injury (per person)", 
-      value: formatCurrency(policy.bodily_injury_per_person), 
-      covered: true 
-    });
-  }
-  if (policy.bodily_injury_per_accident) {
-    coverageRows.push({ 
-      label: "Bodily injury (per accident)", 
-      value: formatCurrency(policy.bodily_injury_per_accident), 
-      covered: true 
-    });
-  }
-  if (policy.property_damage_limit) {
-    coverageRows.push({ 
-      label: "Property damage", 
-      value: formatCurrency(policy.property_damage_limit), 
-      covered: true 
-    });
-  }
-
-  // Medical payments
-  if (policy.medical_payments_covered !== null) {
-    let value = "Not covered";
-    if (policy.medical_payments_covered) {
-      value = policy.medical_payments_limit 
-        ? `${formatCurrency(policy.medical_payments_limit)} limit`
-        : "Covered";
-    }
-    coverageRows.push({ label: "Medical payments", value, covered: policy.medical_payments_covered });
-  }
-
-  // Uninsured motorist - Split into 2 separate rows
-  if (policy.uninsured_motorist_covered) {
-    if (policy.uninsured_motorist_per_person) {
-      coverageRows.push({ 
-        label: "Uninsured motorist (per person)", 
-        value: formatCurrency(policy.uninsured_motorist_per_person), 
-        covered: true 
-      });
-    }
-    if (policy.uninsured_motorist_per_accident) {
-      coverageRows.push({ 
-        label: "Uninsured motorist (per accident)", 
-        value: formatCurrency(policy.uninsured_motorist_per_accident), 
-        covered: true 
-      });
-    }
-  } else if (policy.uninsured_motorist_covered === false) {
-    coverageRows.push({ 
-      label: "Uninsured motorist", 
-      value: "Not covered", 
-      covered: false 
-    });
-  }
-
-  // Rental reimbursement
-  if (policy.rental_reimbursement_covered !== null) {
-    let value = "Not included";
-    if (policy.rental_reimbursement_covered) {
-      if (policy.rental_reimbursement_daily && policy.rental_reimbursement_max) {
-        value = `${formatCurrency(policy.rental_reimbursement_daily)}/day, ${formatCurrency(policy.rental_reimbursement_max)} max`;
-      } else if (policy.rental_reimbursement_daily) {
-        value = `${formatCurrency(policy.rental_reimbursement_daily)}/day`;
-      } else {
-        value = "Included";
-      }
-    }
-    coverageRows.push({ label: "Rental reimbursement", value, covered: policy.rental_reimbursement_covered });
-  }
-
-  // Roadside assistance
-  if (policy.roadside_assistance_covered !== null) {
-    coverageRows.push({ 
-      label: "Roadside assistance", 
-      value: policy.roadside_assistance_covered ? "Included" : "Not included", 
-      covered: policy.roadside_assistance_covered 
-    });
-  }
+  // Check if we have liability data
+  const hasLiability = policy.bodily_injury_per_person || policy.bodily_injury_per_accident || policy.property_damage_limit;
+  
+  // Check if we have uninsured motorist data
+  const hasUninsuredMotorist = policy.uninsured_motorist_covered && 
+    (policy.uninsured_motorist_per_person || policy.uninsured_motorist_per_accident);
 
   return (
     <div className="space-y-6">
@@ -236,11 +145,136 @@ export function AutoPolicyDetails({ policy }: AutoPolicyDetailsProps) {
         <h4 className="text-sm font-semibold text-foreground">Coverage Details</h4>
         <div className="rounded-lg border border-border bg-card overflow-hidden">
           <div className="px-4">
-            {coverageRows.length > 0 ? (
-              coverageRows.map((row, i) => (
-                <CoverageRow key={i} label={row.label} value={row.value} covered={row.covered} />
-              ))
-            ) : (
+            {/* Collision */}
+            {policy.collision_covered !== null && (
+              <CoverageRow 
+                label="Collision" 
+                value={policy.collision_covered 
+                  ? (policy.collision_deductible ? `${formatCurrency(policy.collision_deductible)} deductible` : "Covered")
+                  : "Not covered"
+                } 
+                covered={policy.collision_covered} 
+              />
+            )}
+
+            {/* Comprehensive */}
+            {policy.comprehensive_covered !== null && (
+              <CoverageRow 
+                label="Comprehensive" 
+                value={policy.comprehensive_covered 
+                  ? (policy.comprehensive_deductible ? `${formatCurrency(policy.comprehensive_deductible)} deductible` : "Covered")
+                  : "Not covered"
+                } 
+                covered={policy.comprehensive_covered} 
+              />
+            )}
+
+            {/* Liability Section */}
+            {hasLiability && (
+              <>
+                <SectionHeader label="Liability" />
+                {policy.bodily_injury_per_person && (
+                  <CoverageRow 
+                    label="Bodily injury (per person)" 
+                    value={formatCurrency(policy.bodily_injury_per_person)} 
+                    covered={true}
+                    indented
+                  />
+                )}
+                {policy.bodily_injury_per_accident && (
+                  <CoverageRow 
+                    label="Bodily injury (per accident)" 
+                    value={formatCurrency(policy.bodily_injury_per_accident)} 
+                    covered={true}
+                    indented
+                  />
+                )}
+                {policy.property_damage_limit && (
+                  <CoverageRow 
+                    label="Property damage" 
+                    value={formatCurrency(policy.property_damage_limit)} 
+                    covered={true}
+                    indented
+                  />
+                )}
+              </>
+            )}
+
+            {/* Uninsured Motorist Section */}
+            {hasUninsuredMotorist && (
+              <>
+                <SectionHeader label="Uninsured Motorist" />
+                {policy.uninsured_motorist_per_person && (
+                  <CoverageRow 
+                    label="Per person" 
+                    value={formatCurrency(policy.uninsured_motorist_per_person)} 
+                    covered={true}
+                    indented
+                  />
+                )}
+                {policy.uninsured_motorist_per_accident && (
+                  <CoverageRow 
+                    label="Per accident" 
+                    value={formatCurrency(policy.uninsured_motorist_per_accident)} 
+                    covered={true}
+                    indented
+                  />
+                )}
+              </>
+            )}
+            {policy.uninsured_motorist_covered === false && (
+              <CoverageRow 
+                label="Uninsured motorist" 
+                value="Not covered" 
+                covered={false}
+              />
+            )}
+
+            {/* Medical payments */}
+            {policy.medical_payments_covered !== null && (
+              <CoverageRow 
+                label="Medical payments" 
+                value={policy.medical_payments_covered 
+                  ? (policy.medical_payments_limit ? `${formatCurrency(policy.medical_payments_limit)} limit` : "Covered")
+                  : "Not covered"
+                } 
+                covered={policy.medical_payments_covered} 
+              />
+            )}
+
+            {/* Rental reimbursement */}
+            {policy.rental_reimbursement_covered !== null && (
+              <CoverageRow 
+                label="Rental reimbursement" 
+                value={policy.rental_reimbursement_covered 
+                  ? (policy.rental_reimbursement_daily && policy.rental_reimbursement_max 
+                    ? `${formatCurrency(policy.rental_reimbursement_daily)}/day, ${formatCurrency(policy.rental_reimbursement_max)} max`
+                    : policy.rental_reimbursement_daily 
+                      ? `${formatCurrency(policy.rental_reimbursement_daily)}/day`
+                      : "Included")
+                  : "Not included"
+                } 
+                covered={policy.rental_reimbursement_covered} 
+              />
+            )}
+
+            {/* Roadside assistance */}
+            {policy.roadside_assistance_covered !== null && (
+              <CoverageRow 
+                label="Roadside assistance" 
+                value={policy.roadside_assistance_covered ? "Included" : "Not included"} 
+                covered={policy.roadside_assistance_covered} 
+              />
+            )}
+
+            {/* Empty state */}
+            {policy.collision_covered === null && 
+             policy.comprehensive_covered === null && 
+             !hasLiability && 
+             !hasUninsuredMotorist &&
+             policy.medical_payments_covered === null &&
+             policy.rental_reimbursement_covered === null &&
+             policy.roadside_assistance_covered === null && (
               <p className="py-4 text-sm text-muted-foreground text-center">
                 No coverage details available
               </p>
