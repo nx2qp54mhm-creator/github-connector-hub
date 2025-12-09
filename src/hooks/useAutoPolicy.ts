@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
@@ -33,29 +33,31 @@ export interface AutoPolicy {
 interface AutoPolicyStore {
   autoPolicy: AutoPolicy | null;
   loading: boolean;
-  userId: string | null;
+  lastFetchedUserId: string | null;
   setAutoPolicy: (policy: AutoPolicy | null) => void;
   setLoading: (loading: boolean) => void;
-  setUserId: (userId: string | null) => void;
-  clearPolicy: () => void;
+  setLastFetchedUserId: (userId: string | null) => void;
 }
 
 const useAutoPolicyStore = create<AutoPolicyStore>((set) => ({
   autoPolicy: null,
   loading: true,
-  userId: null,
+  lastFetchedUserId: null,
   setAutoPolicy: (policy) => set({ autoPolicy: policy }),
   setLoading: (loading) => set({ loading }),
-  setUserId: (userId) => set({ userId }),
-  clearPolicy: () => set({ autoPolicy: null }),
+  setLastFetchedUserId: (userId) => set({ lastFetchedUserId: userId }),
 }));
 
 export function useAutoPolicy() {
   const { user } = useAuth();
-  const { autoPolicy, loading, userId, setAutoPolicy, setLoading, setUserId, clearPolicy } = useAutoPolicyStore();
+  const { autoPolicy, loading, lastFetchedUserId, setAutoPolicy, setLoading, setLastFetchedUserId } = useAutoPolicyStore();
+  const isFetching = useRef(false);
 
   const fetchAutoPolicy = async (uid: string) => {
+    if (isFetching.current) return;
+    isFetching.current = true;
     setLoading(true);
+    
     const { data, error } = await supabase
       .from("auto_policies")
       .select("*")
@@ -70,31 +72,35 @@ export function useAutoPolicy() {
 
     setAutoPolicy(data);
     setLoading(false);
+    setLastFetchedUserId(uid);
+    isFetching.current = false;
   };
 
   useEffect(() => {
-    if (!user) {
-      if (userId !== null) {
-        clearPolicy();
-        setUserId(null);
+    const userId = user?.id;
+    
+    if (!userId) {
+      if (lastFetchedUserId !== null) {
+        setAutoPolicy(null);
+        setLastFetchedUserId(null);
         setLoading(false);
       }
       return;
     }
 
-    // Only fetch if user changed or first load
-    if (userId !== user.id) {
-      setUserId(user.id);
-      fetchAutoPolicy(user.id);
+    // Only fetch if user changed
+    if (lastFetchedUserId !== userId && !isFetching.current) {
+      fetchAutoPolicy(userId);
     }
-  }, [user, userId]);
+  }, [user?.id, lastFetchedUserId]);
 
   const refetch = async () => {
     if (!user) {
-      clearPolicy();
+      setAutoPolicy(null);
       setLoading(false);
       return;
     }
+    isFetching.current = false; // Reset to allow refetch
     await fetchAutoPolicy(user.id);
   };
 
