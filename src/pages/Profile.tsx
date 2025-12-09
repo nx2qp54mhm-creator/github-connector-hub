@@ -6,6 +6,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 
@@ -14,6 +15,7 @@ export default function Profile() {
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading, updateProfile } = useProfile();
   const [name, setName] = useState("");
+  const [hasHealthInsurance, setHasHealthInsurance] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -25,12 +27,23 @@ export default function Profile() {
   useEffect(() => {
     if (profile) {
       setName(profile.name || "");
+      if (profile.has_health_insurance === true) {
+        setHasHealthInsurance("yes");
+      } else if (profile.has_health_insurance === false) {
+        setHasHealthInsurance("no");
+      } else {
+        setHasHealthInsurance("");
+      }
     }
   }, [profile]);
 
   const handleSave = async () => {
     setSaving(true);
-    const { error } = await updateProfile({ name: name.trim() || null });
+    const healthValue = hasHealthInsurance === "yes" ? true : hasHealthInsurance === "no" ? false : null;
+    const { error } = await updateProfile({ 
+      name: name.trim() || null,
+      has_health_insurance: healthValue,
+    });
     setSaving(false);
 
     if (error) {
@@ -102,6 +115,27 @@ export default function Profile() {
               <p className="text-xs text-muted-foreground">
                 This name will be shown in the header instead of your email
               </p>
+            </div>
+
+            <div className="space-y-3">
+              <Label>Do you have health insurance?</Label>
+              {hasHealthInsurance === "" && (
+                <p className="text-xs text-amber-600">Not answered yet</p>
+              )}
+              <RadioGroup
+                value={hasHealthInsurance}
+                onValueChange={setHasHealthInsurance}
+                className="flex gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="yes" id="health-yes" />
+                  <Label htmlFor="health-yes" className="font-normal cursor-pointer">Yes</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="no" id="health-no" />
+                  <Label htmlFor="health-no" className="font-normal cursor-pointer">No</Label>
+                </div>
+              </RadioGroup>
             </div>
 
             <Button onClick={handleSave} disabled={saving} className="gap-2">

@@ -166,18 +166,21 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          has_health_insurance: boolean | null
           id: string
           name: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
+          has_health_insurance?: boolean | null
           id: string
           name?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
+          has_health_insurance?: boolean | null
           id?: string
           name?: string | null
           updated_at?: string
