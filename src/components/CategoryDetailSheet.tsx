@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, CheckCircle2, XCircle, Trash2, RefreshCw } from "lucide-react";
+import { Plus, CheckCircle2, XCircle, Trash2, RefreshCw, Loader2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -36,6 +36,7 @@ export function CategoryDetailSheet({
 }: CategoryDetailSheetProps) {
   const getCoverageStatus = useCoverageStore((state) => state.getCoverageStatus);
   const getSourcesForCategory = useCoverageStore((state) => state.getSourcesForCategory);
+  const removePolicy = useCoverageStore((state) => state.removePolicy);
   const { autoPolicy, refetch: refetchAutoPolicy } = useAutoPolicy();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -201,6 +202,7 @@ export function CategoryDetailSheet({
               <Button
                 variant="outline"
                 onClick={() => setShowDeleteDialog(true)}
+                disabled={isDeleting}
                 className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
@@ -211,6 +213,7 @@ export function CategoryDetailSheet({
                   onOpenChange(false);
                   setTimeout(onAddCoverage, 300);
                 }}
+                disabled={isDeleting}
                 className="flex-1"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
@@ -300,12 +303,17 @@ export function CategoryDetailSheet({
                     }
                   }
 
-                  // Close dialogs first, then refetch to update UI
+                  // Remove from Zustand store (Coverage Library)
+                  if (autoPolicy.document_id) {
+                    removePolicy(autoPolicy.document_id);
+                  }
+                  
+                  // Refetch to update local state
+                  await refetchAutoPolicy();
+                  
+                  // Close dialogs after state is updated
                   setShowDeleteDialog(false);
                   onOpenChange(false);
-                  
-                  // Await the refetch to ensure state updates
-                  await refetchAutoPolicy();
                   
                   toast.success('Policy deleted');
                 } catch (error) {
@@ -317,7 +325,14 @@ export function CategoryDetailSheet({
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
