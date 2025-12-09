@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cardDatabase, commonPlans } from "@/data/cardDatabase";
 import { useCoverageStore } from "@/hooks/useCoverageStore";
+import { useAutoPolicy } from "@/hooks/useAutoPolicy";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +39,7 @@ export function AddCoverageModal({
     addPlan,
     addedPlans
   } = useCoverageStore();
+  const { refetch: refetchAutoPolicy } = useAutoPolicy();
 
   const resetUploadState = () => {
     setIsUploading(false);
@@ -170,6 +172,11 @@ export function AddCoverageModal({
         filename: file.name,
         categories: categoryMap[policyType] as any[],
       });
+
+      // Refetch auto policy to update the Auto Insurance card
+      if (policyType === "auto") {
+        await refetchAutoPolicy();
+      }
 
       toast({
         title: "Policy analyzed successfully!",

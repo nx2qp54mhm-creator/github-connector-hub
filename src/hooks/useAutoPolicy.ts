@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
@@ -29,55 +30,72 @@ export interface AutoPolicy {
   premium_frequency: string | null;
 }
 
+interface AutoPolicyStore {
+  autoPolicy: AutoPolicy | null;
+  loading: boolean;
+  userId: string | null;
+  setAutoPolicy: (policy: AutoPolicy | null) => void;
+  setLoading: (loading: boolean) => void;
+  setUserId: (userId: string | null) => void;
+  clearPolicy: () => void;
+}
+
+const useAutoPolicyStore = create<AutoPolicyStore>((set) => ({
+  autoPolicy: null,
+  loading: true,
+  userId: null,
+  setAutoPolicy: (policy) => set({ autoPolicy: policy }),
+  setLoading: (loading) => set({ loading }),
+  setUserId: (userId) => set({ userId }),
+  clearPolicy: () => set({ autoPolicy: null }),
+}));
+
 export function useAutoPolicy() {
   const { user } = useAuth();
-  const [autoPolicy, setAutoPolicy] = useState<AutoPolicy | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { autoPolicy, loading, userId, setAutoPolicy, setLoading, setUserId, clearPolicy } = useAutoPolicyStore();
 
-  useEffect(() => {
-    async function fetchAutoPolicy() {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("auto_policies")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error fetching auto policy:", error);
-      }
-
-      setAutoPolicy(data);
-      setLoading(false);
-    }
-
-    fetchAutoPolicy();
-  }, [user]);
-
-  const refetch = async () => {
+  const fetchAutoPolicy = async (uid: string) => {
     setLoading(true);
-    if (!user) {
-      setAutoPolicy(null);
-      setLoading(false);
-      return;
-    }
-    
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("auto_policies")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", uid)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    
+
+    if (error) {
+      console.error("Error fetching auto policy:", error);
+    }
+
     setAutoPolicy(data);
     setLoading(false);
+  };
+
+  useEffect(() => {
+    if (!user) {
+      if (userId !== null) {
+        clearPolicy();
+        setUserId(null);
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Only fetch if user changed or first load
+    if (userId !== user.id) {
+      setUserId(user.id);
+      fetchAutoPolicy(user.id);
+    }
+  }, [user, userId]);
+
+  const refetch = async () => {
+    if (!user) {
+      clearPolicy();
+      setLoading(false);
+      return;
+    }
+    await fetchAutoPolicy(user.id);
   };
 
   return { autoPolicy, loading, refetch };
