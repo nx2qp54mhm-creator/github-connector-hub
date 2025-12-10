@@ -25,7 +25,7 @@ export function CategoryCard({ category, onClick }: CategoryCardProps) {
       className={cn(
         "p-4 cursor-pointer transition-all duration-200 group",
         "hover:shadow-md hover:border-primary/20 hover:-translate-y-0.5",
-        "border border-border bg-card"
+        "border border-border bg-card",
       )}
     >
       <div className="flex items-center justify-between gap-3">
@@ -34,14 +34,12 @@ export function CategoryCard({ category, onClick }: CategoryCardProps) {
             <CategoryIcon categoryId={category.id} className="w-5 h-5 text-primary" />
           </div>
           <div className="min-w-0">
-            <h3 className="font-medium text-sm text-foreground truncate">
-              {category.title}
-            </h3>
-            <p className="text-xs text-muted-foreground truncate">
-              {category.subtitle}
-            </p>
+            <h3 className="font-medium text-sm text-foreground truncate">{category.title}</h3>
+            <p className="text-xs text-muted-foreground truncate">{category.subtitle}</p>
           </div>
         </div>
+
+        <div className="bg-covered-warning-bg text-covered-warning p-4">Test: New colors working!</div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className="text-xs text-muted-foreground hidden sm:inline">
