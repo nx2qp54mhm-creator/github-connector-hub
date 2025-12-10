@@ -12,6 +12,7 @@ export type CardIssuer = "Chase" | "American Express";
 export type CardNetwork = "Visa" | "Mastercard" | "American Express";
 
 export interface RentalExclusions {
+  what_is_covered?: string[];
   what_is_not_covered: string[];
   vehicle_exclusions: string[];
   country_exclusions: string[];
@@ -32,6 +33,12 @@ export interface CreditCard {
     maxDays: number;
   };
   rentalExclusions?: RentalExclusions;
+  // Additional rental properties for comparison view
+  rentalCoverageType?: "primary" | "secondary";
+  rentalCoverageLimit?: number;
+  rentalMaxDays?: number;
+  rentalExoticCovered?: boolean;
+  rentalReportDays?: number;
 }
 
 export interface Policy {
