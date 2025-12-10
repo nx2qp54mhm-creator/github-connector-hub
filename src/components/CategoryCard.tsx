@@ -39,8 +39,6 @@ export function CategoryCard({ category, onClick }: CategoryCardProps) {
           </div>
         </div>
 
-        <div className="bg-covered-warning-bg text-covered-warning p-4">Test: New colors working!</div>
-
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className="text-xs text-muted-foreground hidden sm:inline">
             {sourceCount} source{sourceCount !== 1 ? "s" : ""}
