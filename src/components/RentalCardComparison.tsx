@@ -1,5 +1,6 @@
 import { CreditCard } from "@/types/coverage";
 import { CheckCircle2 } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 interface RentalCardComparisonProps {
   cards: CreditCard[];
@@ -7,9 +8,53 @@ interface RentalCardComparisonProps {
   categorySubtitle?: string;
 }
 
+// Hook to synchronize heights of elements with matching data-sync-id attributes
+function useSyncHeights(containerRef: React.RefObject<HTMLDivElement>, deps: any[]) {
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const syncGroups = new Map<string, HTMLElement[]>();
+
+    // Find all elements with data-sync-id and group them
+    const elements = containerRef.current.querySelectorAll<HTMLElement>('[data-sync-id]');
+    elements.forEach((el) => {
+      const syncId = el.getAttribute('data-sync-id');
+      if (syncId) {
+        if (!syncGroups.has(syncId)) {
+          syncGroups.set(syncId, []);
+        }
+        syncGroups.get(syncId)!.push(el);
+      }
+    });
+
+    // Reset heights first to get natural heights
+    syncGroups.forEach((group) => {
+      group.forEach((el) => {
+        el.style.minHeight = 'auto';
+      });
+    });
+
+    // Force reflow
+    void containerRef.current.offsetHeight;
+
+    // Set all elements in each group to the max height of that group
+    syncGroups.forEach((group) => {
+      const maxHeight = Math.max(...group.map((el) => el.scrollHeight));
+      group.forEach((el) => {
+        el.style.minHeight = `${maxHeight}px`;
+      });
+    });
+  }, deps);
+}
+
 export function RentalCardComparison({ cards, categoryTitle, categorySubtitle }: RentalCardComparisonProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  
   // Show up to 4 cards for comparison
   const displayCards = cards.slice(0, 4);
+
+  // Sync heights whenever cards change
+  useSyncHeights(containerRef, [displayCards]);
 
   if (displayCards.length === 0) {
     return (
@@ -80,10 +125,10 @@ export function RentalCardComparison({ cards, categoryTitle, categorySubtitle }:
         </p>
       </div>
 
-      {/* Card Comparison Grid - Now supports up to 4 cards */}
-      <div className={`grid ${getGridClass()} gap-4`}>
-        {displayCards.map((card) => (
-          <CardComparisonDetail key={card.id} card={card} compact={displayCards.length > 2} />
+      {/* Card Comparison Grid - Now supports up to 4 cards with synced heights */}
+      <div ref={containerRef} className={`grid ${getGridClass()} gap-4 items-start`}>
+        {displayCards.map((card, index) => (
+          <CardComparisonDetail key={card.id} card={card} index={index} compact={displayCards.length > 2} />
         ))}
       </div>
 
@@ -104,10 +149,11 @@ export function RentalCardComparison({ cards, categoryTitle, categorySubtitle }:
 
 interface CardComparisonDetailProps {
   card: CreditCard;
+  index: number;
   compact?: boolean;
 }
 
-function CardComparisonDetail({ card, compact = false }: CardComparisonDetailProps) {
+function CardComparisonDetail({ card, index, compact = false }: CardComparisonDetailProps) {
   // Use the nested rental object for coverage data (the actual data structure)
   const isPrimary = card.rental?.coverageType === 'primary';
   const coverageLimit = card.rental?.maxCoverage || 50000;
@@ -115,9 +161,9 @@ function CardComparisonDetail({ card, compact = false }: CardComparisonDetailPro
   const exclusions = card.rentalExclusions;
 
   return (
-    <article className="bg-card border border-border rounded-lg">
+    <article className="bg-card border border-border rounded-lg flex flex-col">
       {/* Card Header */}
-      <div className="p-4 border-b border-border">
+      <div data-sync-id="header" className="p-4 border-b border-border">
         <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
           Rental Car Insurance
         </div>
@@ -136,9 +182,9 @@ function CardComparisonDetail({ card, compact = false }: CardComparisonDetailPro
       </div>
 
       {/* Card Content */}
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-4 flex-1 flex flex-col">
         {/* Coverage Limit */}
-        <div className={compact ? "min-h-[100px]" : "min-h-[140px]"}>
+        <div data-sync-id="coverage-limit">
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             Coverage Limit
           </div>
@@ -164,15 +210,15 @@ function CardComparisonDetail({ card, compact = false }: CardComparisonDetailPro
         <div className="h-px bg-border" />
 
         {/* What's Covered */}
-        <div className={compact ? "min-h-[150px]" : "min-h-[200px]"}>
+        <div data-sync-id="whats-covered">
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-covered-success" />
             What's Covered
           </div>
           <ul className="space-y-1.5">
-            {exclusions?.what_is_covered?.map((item, index) => (
+            {exclusions?.what_is_covered?.map((item, idx) => (
               <li
-                key={index}
+                key={idx}
                 className={`text-foreground py-1 pl-5 relative leading-relaxed ${compact ? 'text-xs' : 'text-sm'}`}
               >
                 <span className="absolute left-0 top-[0.5rem] w-1.5 h-1.5 bg-foreground rounded-full" />
@@ -187,7 +233,7 @@ function CardComparisonDetail({ card, compact = false }: CardComparisonDetailPro
         <div className="h-px bg-border" />
 
         {/* Key Requirements */}
-        <div className={compact ? "min-h-[120px]" : "min-h-[160px]"}>
+        <div data-sync-id="key-requirements">
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             Key Requirements
           </div>
@@ -232,14 +278,14 @@ function CardComparisonDetail({ card, compact = false }: CardComparisonDetailPro
         </div>
 
         {/* Not Covered */}
-        <div className={`bg-covered-warning-bg border-l-4 border-covered-warning rounded px-3 py-3 ${compact ? 'min-h-[140px]' : 'min-h-[180px]'}`}>
+        <div data-sync-id="not-covered" className="bg-covered-warning-bg border-l-4 border-covered-warning rounded px-3 py-3">
           <div className="text-xs font-bold uppercase tracking-wider text-gray-900 mb-2">
             Not Covered
           </div>
           <ul className="space-y-1">
-            {(compact ? exclusions?.what_is_not_covered?.slice(0, 4) : exclusions?.what_is_not_covered)?.map((item, index) => (
+            {(compact ? exclusions?.what_is_not_covered?.slice(0, 4) : exclusions?.what_is_not_covered)?.map((item, idx) => (
               <li
-                key={index}
+                key={idx}
                 className={`text-gray-800 py-0.5 pl-5 relative leading-relaxed ${compact ? 'text-xs' : 'text-sm'}`}
               >
                 <span className="absolute left-0 top-[0.5rem] w-1.5 h-1.5 bg-gray-900 rounded-full" />
@@ -260,14 +306,14 @@ function CardComparisonDetail({ card, compact = false }: CardComparisonDetailPro
         {!compact && exclusions?.vehicle_exclusions && exclusions.vehicle_exclusions.length > 0 && (
           <>
             <div className="h-px bg-border" />
-            <div className="min-h-[140px]">
+            <div data-sync-id="vehicle-exclusions">
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                 Excluded Vehicles
               </div>
               <ul className="space-y-1.5">
-                {exclusions.vehicle_exclusions.slice(0, 5).map((vehicle, index) => (
+                {exclusions.vehicle_exclusions.slice(0, 5).map((vehicle, idx) => (
                   <li
-                    key={index}
+                    key={idx}
                     className="text-sm text-foreground py-1 pl-5 relative leading-relaxed"
                   >
                     <span className="absolute left-0 top-[0.5rem] w-1.5 h-1.5 bg-foreground rounded-full" />
@@ -281,7 +327,7 @@ function CardComparisonDetail({ card, compact = false }: CardComparisonDetailPro
 
         {/* Country Exclusions / How to Activate */}
         <div className="h-px bg-border" />
-        <div className={compact ? "min-h-[80px]" : "min-h-[120px]"}>
+        <div data-sync-id="country-or-activate">
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             {exclusions?.country_exclusions && exclusions.country_exclusions.length > 0
               ? 'Country Exclusions'
@@ -289,9 +335,9 @@ function CardComparisonDetail({ card, compact = false }: CardComparisonDetailPro
           </div>
           <ul className="space-y-1">
             {exclusions?.country_exclusions && exclusions.country_exclusions.length > 0 ? (
-              exclusions.country_exclusions.map((country, index) => (
+              exclusions.country_exclusions.map((country, idx) => (
                 <li
-                  key={index}
+                  key={idx}
                   className={`text-foreground py-0.5 pl-5 relative leading-relaxed ${compact ? 'text-xs' : 'text-sm'}`}
                 >
                   <span className="absolute left-0 top-[0.5rem] w-1.5 h-1.5 bg-foreground rounded-full" />
