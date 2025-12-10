@@ -319,20 +319,10 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
           {hasAutoPolicy && <AutoPolicyDetails policy={autoPolicy} />}
 
           {/* Non-auto content with optional tabs */}
+          {/* Non-auto content */}
           {!hasAutoPolicy &&
-            (showTabs ? (
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-4">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="exclusions">Exclusions</TabsTrigger>
-                </TabsList>
-                <TabsContent value="overview" className="mt-0">
-                  <OverviewContent />
-                </TabsContent>
-                <TabsContent value="exclusions" className="mt-0">
-                  <ExclusionsContent />
-                </TabsContent>
-              </Tabs>
+            (isRentalCategory && cards.length > 0 ? (
+              <RentalCardComparison cards={cards} categoryTitle={category.title} categorySubtitle={category.subtitle} />
             ) : (
               <OverviewContent />
             ))}
