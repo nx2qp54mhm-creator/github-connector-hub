@@ -121,7 +121,6 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
   const { autoPolicy, refetch: refetchAutoPolicy } = useAutoPolicy();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
 
   if (!category) return null;
 
@@ -131,11 +130,6 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
   const { cards, policies, plans } = getSourcesForCategory(category.id);
   const sourceCount = cards.length + policies.length + plans.length;
   const hasAutoPolicy = isAutoInsurance && autoPolicy;
-
-  // Filter cards with rental exclusions for the Exclusions tab
-  const cardsWithExclusions = cards.filter((card) => card && card.rentalExclusions);
-
-  const showTabs = isRentalCategory && cards.length > 0;
 
   const OverviewContent = () => (
     <div className="space-y-6">
