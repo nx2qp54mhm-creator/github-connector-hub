@@ -8,8 +8,8 @@ interface RentalCardComparisonProps {
 }
 
 export function RentalCardComparison({ cards, categoryTitle, categorySubtitle }: RentalCardComparisonProps) {
-  // Only show first 2 cards for comparison
-  const displayCards = cards.slice(0, 2);
+  // Show up to 4 cards for comparison
+  const displayCards = cards.slice(0, 4);
 
   if (displayCards.length === 0) {
     return (
@@ -23,6 +23,25 @@ export function RentalCardComparison({ cards, categoryTitle, categorySubtitle }:
     );
   }
 
+  // Determine grid columns based on card count
+  const getGridClass = () => {
+    switch (displayCards.length) {
+      case 1:
+        return "grid-cols-1 max-w-xl mx-auto";
+      case 2:
+        return "grid-cols-1 lg:grid-cols-2";
+      case 3:
+        return "grid-cols-1 lg:grid-cols-3";
+      case 4:
+      default:
+        return "grid-cols-1 md:grid-cols-2 xl:grid-cols-4";
+    }
+  };
+
+  // Check if any card has primary coverage using the correct field path
+  const hasPrimaryCoverage = displayCards.some(c => c.rental?.coverageType === 'primary');
+  const primaryCard = displayCards.find(c => c.rental?.coverageType === 'primary');
+
   return (
     <div className="space-y-6">
       {/* Stats Cards - Summary */}
@@ -35,7 +54,7 @@ export function RentalCardComparison({ cards, categoryTitle, categorySubtitle }:
             {cards.length} {cards.length === 1 ? 'card' : 'cards'}
           </div>
           <div className="text-xs text-muted-foreground">
-            {cards.slice(0, 2).map(c => c.name).join(', ')}
+            {cards.slice(0, 3).map(c => c.name).join(', ')}{cards.length > 3 ? ` +${cards.length - 3} more` : ''}
           </div>
         </div>
         <div className="bg-muted/50 border border-border rounded-lg p-4">
@@ -43,10 +62,10 @@ export function RentalCardComparison({ cards, categoryTitle, categorySubtitle }:
             Best Coverage Type
           </div>
           <div className="text-2xl font-bold text-foreground mb-1 leading-tight">
-            {displayCards.some(c => c.rentalCoverageType === 'primary') ? 'Primary' : 'Secondary'}
+            {hasPrimaryCoverage ? 'Primary' : 'Secondary'}
           </div>
           <div className="text-xs text-muted-foreground">
-            {displayCards.find(c => c.rentalCoverageType === 'primary')?.name || displayCards[0]?.name}
+            {primaryCard?.name || displayCards[0]?.name}
           </div>
         </div>
       </div>
@@ -61,12 +80,19 @@ export function RentalCardComparison({ cards, categoryTitle, categorySubtitle }:
         </p>
       </div>
 
-      {/* Card Comparison Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Card Comparison Grid - Now supports up to 4 cards */}
+      <div className={`grid ${getGridClass()} gap-4`}>
         {displayCards.map((card) => (
-          <CardComparisonDetail key={card.id} card={card} />
+          <CardComparisonDetail key={card.id} card={card} compact={displayCards.length > 2} />
         ))}
       </div>
+
+      {/* Show note if more cards available */}
+      {cards.length > 4 && (
+        <p className="text-xs text-muted-foreground text-center">
+          Showing 4 of {cards.length} cards with rental coverage.
+        </p>
+      )}
 
       {/* Footer */}
       <p className="text-xs text-muted-foreground text-center pt-2">
@@ -76,8 +102,16 @@ export function RentalCardComparison({ cards, categoryTitle, categorySubtitle }:
   );
 }
 
-function CardComparisonDetail({ card }: { card: CreditCard }) {
-  const isPrimary = card.rentalCoverageType === 'primary';
+interface CardComparisonDetailProps {
+  card: CreditCard;
+  compact?: boolean;
+}
+
+function CardComparisonDetail({ card, compact = false }: CardComparisonDetailProps) {
+  // Use the nested rental object for coverage data (the actual data structure)
+  const isPrimary = card.rental?.coverageType === 'primary';
+  const coverageLimit = card.rental?.maxCoverage || 50000;
+  const maxDays = card.rental?.maxDays || 30;
   const exclusions = card.rentalExclusions;
 
   return (
@@ -87,7 +121,7 @@ function CardComparisonDetail({ card }: { card: CreditCard }) {
         <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
           Rental Car Insurance
         </div>
-        <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
+        <h3 className={`font-bold text-foreground mb-3 leading-tight ${compact ? 'text-base' : 'text-lg'}`}>
           {card.fullName}
         </h3>
         <span
@@ -103,25 +137,25 @@ function CardComparisonDetail({ card }: { card: CreditCard }) {
 
       {/* Card Content */}
       <div className="p-4 space-y-4">
-        {/* Coverage Limit - Fixed Height */}
-        <div className="min-h-[140px]">
+        {/* Coverage Limit */}
+        <div className={compact ? "min-h-[100px]" : "min-h-[140px]"}>
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             Coverage Limit
           </div>
-          <div className="text-3xl font-bold text-foreground leading-none">
-            ${card.rentalCoverageLimit?.toLocaleString() || '50,000'}
+          <div className={`font-bold text-foreground leading-none ${compact ? 'text-2xl' : 'text-3xl'}`}>
+            ${coverageLimit.toLocaleString()}
           </div>
           <div className="text-sm text-muted-foreground mt-1">
             {isPrimary ? 'Per rental incident' : 'After personal insurance'}
           </div>
 
           {!isPrimary && (
-            <div className="bg-covered-warning-bg border-l-4 border-covered-warning rounded px-3 py-3 mt-3">
+            <div className="bg-covered-warning-bg border-l-4 border-covered-warning rounded px-3 py-2 mt-3">
               <div className="text-xs font-bold uppercase tracking-wider text-gray-900 mb-1">
-                Secondary Coverage Notice
+                Secondary Coverage
               </div>
-              <div className="text-sm text-gray-800 leading-relaxed">
-                You must file with your personal auto insurance first. This card covers remaining expenses after your insurance pays. May affect your insurance rates.
+              <div className={`text-gray-800 leading-relaxed ${compact ? 'text-xs' : 'text-sm'}`}>
+                File with your personal auto insurance first. This covers remaining expenses.
               </div>
             </div>
           )}
@@ -129,8 +163,8 @@ function CardComparisonDetail({ card }: { card: CreditCard }) {
 
         <div className="h-px bg-border" />
 
-        {/* What's Covered - Fixed Height */}
-        <div className="min-h-[200px]">
+        {/* What's Covered */}
+        <div className={compact ? "min-h-[150px]" : "min-h-[200px]"}>
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-covered-success" />
             What's Covered
@@ -139,9 +173,9 @@ function CardComparisonDetail({ card }: { card: CreditCard }) {
             {exclusions?.what_is_covered?.map((item, index) => (
               <li
                 key={index}
-                className="text-sm text-foreground py-1 pl-6 relative leading-relaxed"
+                className={`text-foreground py-1 pl-5 relative leading-relaxed ${compact ? 'text-xs' : 'text-sm'}`}
               >
-                <span className="absolute left-0 top-[0.65rem] w-1.5 h-1.5 bg-foreground rounded-full" />
+                <span className="absolute left-0 top-[0.5rem] w-1.5 h-1.5 bg-foreground rounded-full" />
                 {item}
               </li>
             )) || (
@@ -152,21 +186,21 @@ function CardComparisonDetail({ card }: { card: CreditCard }) {
 
         <div className="h-px bg-border" />
 
-        {/* Key Requirements - Fixed Height */}
-        <div className="min-h-[160px]">
+        {/* Key Requirements */}
+        <div className={compact ? "min-h-[120px]" : "min-h-[160px]"}>
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             Key Requirements
           </div>
-          <div className="grid grid-cols-2 gap-3 mt-3">
-            <div className="p-3 bg-muted/50 rounded">
+          <div className={`grid gap-2 mt-3 ${compact ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            <div className="p-2 bg-muted/50 rounded">
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                 Max Duration
               </div>
               <div className="text-sm font-medium text-foreground">
-                {card.rentalMaxDays || 30} days
+                {maxDays} days
               </div>
             </div>
-            <div className="p-3 bg-muted/50 rounded">
+            <div className="p-2 bg-muted/50 rounded">
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                 Deductible
               </div>
@@ -174,50 +208,58 @@ function CardComparisonDetail({ card }: { card: CreditCard }) {
                 {isPrimary ? '$0' : 'Your policy'}
               </div>
             </div>
-            <div className="p-3 bg-muted/50 rounded">
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                Exotic Vehicles
-              </div>
-              <div className="text-sm font-medium text-foreground">
-                {card.rentalExoticCovered ? 'Covered' : 'Not covered'}
-              </div>
-            </div>
-            <div className="p-3 bg-muted/50 rounded">
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                Report Within
-              </div>
-              <div className="text-sm font-medium text-foreground">
-                {card.rentalReportDays || 30} days
-              </div>
-            </div>
+            {!compact && (
+              <>
+                <div className="p-2 bg-muted/50 rounded">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                    Exotic Vehicles
+                  </div>
+                  <div className="text-sm font-medium text-foreground">
+                    Not covered
+                  </div>
+                </div>
+                <div className="p-2 bg-muted/50 rounded">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                    Report Within
+                  </div>
+                  <div className="text-sm font-medium text-foreground">
+                    30 days
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Not Covered - Fixed Height */}
-        <div className="bg-covered-warning-bg border-l-4 border-covered-warning rounded px-3 py-3 min-h-[180px]">
+        {/* Not Covered */}
+        <div className={`bg-covered-warning-bg border-l-4 border-covered-warning rounded px-3 py-3 ${compact ? 'min-h-[140px]' : 'min-h-[180px]'}`}>
           <div className="text-xs font-bold uppercase tracking-wider text-gray-900 mb-2">
             Not Covered
           </div>
-          <ul className="space-y-1.5">
-            {exclusions?.what_is_not_covered?.map((item, index) => (
+          <ul className="space-y-1">
+            {(compact ? exclusions?.what_is_not_covered?.slice(0, 4) : exclusions?.what_is_not_covered)?.map((item, index) => (
               <li
                 key={index}
-                className="text-sm text-gray-800 py-1 pl-6 relative leading-relaxed"
+                className={`text-gray-800 py-0.5 pl-5 relative leading-relaxed ${compact ? 'text-xs' : 'text-sm'}`}
               >
-                <span className="absolute left-0 top-[0.65rem] w-1.5 h-1.5 bg-gray-900 rounded-full" />
+                <span className="absolute left-0 top-[0.5rem] w-1.5 h-1.5 bg-gray-900 rounded-full" />
                 {item}
               </li>
             )) || (
               <li className="text-sm text-gray-800">Exclusions not available</li>
             )}
+            {compact && exclusions?.what_is_not_covered && exclusions.what_is_not_covered.length > 4 && (
+              <li className="text-xs text-gray-600 pl-5">
+                +{exclusions.what_is_not_covered.length - 4} more exclusions
+              </li>
+            )}
           </ul>
         </div>
 
-        <div className="h-px bg-border" />
-
-        {/* Vehicle Exclusions - Fixed Height */}
-        {exclusions?.vehicle_exclusions && exclusions.vehicle_exclusions.length > 0 && (
+        {/* Vehicle Exclusions - Only show in non-compact mode */}
+        {!compact && exclusions?.vehicle_exclusions && exclusions.vehicle_exclusions.length > 0 && (
           <>
+            <div className="h-px bg-border" />
             <div className="min-h-[140px]">
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                 Excluded Vehicles
@@ -226,50 +268,52 @@ function CardComparisonDetail({ card }: { card: CreditCard }) {
                 {exclusions.vehicle_exclusions.slice(0, 5).map((vehicle, index) => (
                   <li
                     key={index}
-                    className="text-sm text-foreground py-1 pl-6 relative leading-relaxed"
+                    className="text-sm text-foreground py-1 pl-5 relative leading-relaxed"
                   >
-                    <span className="absolute left-0 top-[0.65rem] w-1.5 h-1.5 bg-foreground rounded-full" />
+                    <span className="absolute left-0 top-[0.5rem] w-1.5 h-1.5 bg-foreground rounded-full" />
                     {vehicle}
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="h-px bg-border" />
           </>
         )}
 
-        {/* Country Exclusions / How to Activate - Fixed Height */}
-        <div className="min-h-[120px]">
+        {/* Country Exclusions / How to Activate */}
+        <div className="h-px bg-border" />
+        <div className={compact ? "min-h-[80px]" : "min-h-[120px]"}>
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             {exclusions?.country_exclusions && exclusions.country_exclusions.length > 0
               ? 'Country Exclusions'
               : 'How to Activate'}
           </div>
-          <ul className="space-y-1.5">
+          <ul className="space-y-1">
             {exclusions?.country_exclusions && exclusions.country_exclusions.length > 0 ? (
               exclusions.country_exclusions.map((country, index) => (
                 <li
                   key={index}
-                  className="text-sm text-foreground py-1 pl-6 relative leading-relaxed"
+                  className={`text-foreground py-0.5 pl-5 relative leading-relaxed ${compact ? 'text-xs' : 'text-sm'}`}
                 >
-                  <span className="absolute left-0 top-[0.65rem] w-1.5 h-1.5 bg-foreground rounded-full" />
+                  <span className="absolute left-0 top-[0.5rem] w-1.5 h-1.5 bg-foreground rounded-full" />
                   {country} — Not covered
                 </li>
               ))
             ) : (
               <>
-                <li className="text-sm text-foreground py-1 pl-6 relative leading-relaxed">
-                  <span className="absolute left-0 top-[0.65rem] w-1.5 h-1.5 bg-foreground rounded-full" />
+                <li className={`text-foreground py-0.5 pl-5 relative leading-relaxed ${compact ? 'text-xs' : 'text-sm'}`}>
+                  <span className="absolute left-0 top-[0.5rem] w-1.5 h-1.5 bg-foreground rounded-full" />
                   Pay for entire rental with this card
                 </li>
-                <li className="text-sm text-foreground py-1 pl-6 relative leading-relaxed">
-                  <span className="absolute left-0 top-[0.65rem] w-1.5 h-1.5 bg-foreground rounded-full" />
+                <li className={`text-foreground py-0.5 pl-5 relative leading-relaxed ${compact ? 'text-xs' : 'text-sm'}`}>
+                  <span className="absolute left-0 top-[0.5rem] w-1.5 h-1.5 bg-foreground rounded-full" />
                   Decline the rental company's CDW/LDW
                 </li>
-                <li className="text-sm text-foreground py-1 pl-6 relative leading-relaxed">
-                  <span className="absolute left-0 top-[0.65rem] w-1.5 h-1.5 bg-foreground rounded-full" />
-                  You must be the primary renter
-                </li>
+                {!compact && (
+                  <li className="text-sm text-foreground py-0.5 pl-5 relative leading-relaxed">
+                    <span className="absolute left-0 top-[0.5rem] w-1.5 h-1.5 bg-foreground rounded-full" />
+                    You must be the primary renter
+                  </li>
+                )}
               </>
             )}
           </ul>
