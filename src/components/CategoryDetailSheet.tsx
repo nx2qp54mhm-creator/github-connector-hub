@@ -130,6 +130,9 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
   const { cards, policies, plans } = getSourcesForCategory(category.id);
   const sourceCount = cards.length + policies.length + plans.length;
   const hasAutoPolicy = isAutoInsurance && autoPolicy;
+  
+  // Filter cards with rental exclusions for the Exclusions tab
+  const cardsWithExclusions = cards.filter(card => card && card.rentalExclusions);
 
   const OverviewContent = () => (
     <div className="space-y-6">
@@ -254,26 +257,6 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
     </div>
   );
 
-
-      {/* Card-specific exclusions */}
-      {cardsWithExclusions.length > 0 ? (
-        <div className="space-y-4">
-          {cardsWithExclusions.map((card) => card && <CardExclusionsSection key={card.id} card={card} />)}
-        </div>
-      ) : (
-        <div className="p-4 rounded-xl bg-muted/50 border border-dashed border-border text-center">
-          <p className="text-sm text-muted-foreground">
-            No exclusion data available. Add credit cards to see their specific exclusions.
-          </p>
-        </div>
-      )}
-
-      {/* Footer disclaimer */}
-      <p className="text-xs text-muted-foreground text-center pt-2">
-        Educational only. Always confirm details with your card issuer.
-      </p>
-    </div>
-  );
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
