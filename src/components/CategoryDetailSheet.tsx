@@ -254,21 +254,6 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
     </div>
   );
 
-  const ExclusionsContent = () => (
-    <div className="space-y-4">
-      {/* Important Notice */}
-      <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
-        <div className="flex gap-2">
-          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Important</p>
-            <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-              Credit cards only cover vehicle damage (Protect the Car). They do NOT cover liability for injuring others.
-              Check your auto insurance for liability coverage.
-            </p>
-          </div>
-        </div>
-      </div>
 
       {/* Card-specific exclusions */}
       {cardsWithExclusions.length > 0 ? (
