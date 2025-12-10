@@ -277,7 +277,7 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-7xl overflow-y-auto">
         <SheetHeader className="space-y-4 pb-6 border-b border-border">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
