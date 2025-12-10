@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { CategoryIcon } from "@/components/icons/CategoryIcon";
 import { CategoryDefinition, CreditCard } from "@/types/coverage";
 import { useCoverageStore } from "@/hooks/useCoverageStore";
+import { RentalCardComparison } from "@/components/RentalCardComparison";
 import { useAutoPolicy } from "@/hooks/useAutoPolicy";
 import { AutoPolicyDetails } from "@/components/AutoPolicyDetails";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +32,7 @@ interface CategoryDetailSheetProps {
 
 function CardExclusionsSection({ card }: { card: CreditCard }) {
   const exclusions = card.rentalExclusions;
-  
+
   if (!exclusions) {
     return (
       <div className="p-4 rounded-xl bg-muted/50 border border-border">
@@ -44,7 +45,7 @@ function CardExclusionsSection({ card }: { card: CreditCard }) {
   return (
     <div className="p-4 rounded-xl bg-card border border-border space-y-4">
       <h4 className="font-semibold text-foreground text-base">{card.fullName}</h4>
-      
+
       {/* Situations Not Covered */}
       {exclusions.what_is_not_covered.length > 0 && (
         <div className="space-y-2">
@@ -103,26 +104,17 @@ function CardExclusionsSection({ card }: { card: CreditCard }) {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground pl-6">
-            No country exclusions — coverage is worldwide
-          </p>
+          <p className="text-sm text-muted-foreground pl-6">No country exclusions — coverage is worldwide</p>
         )}
         {exclusions.country_notes && (
-          <p className="text-xs text-muted-foreground italic pl-6 mt-1">
-            Note: {exclusions.country_notes}
-          </p>
+          <p className="text-xs text-muted-foreground italic pl-6 mt-1">Note: {exclusions.country_notes}</p>
         )}
       </div>
     </div>
   );
 }
 
-export function CategoryDetailSheet({
-  category,
-  open,
-  onOpenChange,
-  onAddCoverage
-}: CategoryDetailSheetProps) {
+export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverage }: CategoryDetailSheetProps) {
   const getCoverageStatus = useCoverageStore((state) => state.getCoverageStatus);
   const getSourcesForCategory = useCoverageStore((state) => state.getSourcesForCategory);
   const removePolicy = useCoverageStore((state) => state.removePolicy);
@@ -139,9 +131,9 @@ export function CategoryDetailSheet({
   const { cards, policies, plans } = getSourcesForCategory(category.id);
   const sourceCount = cards.length + policies.length + plans.length;
   const hasAutoPolicy = isAutoInsurance && autoPolicy;
-  
+
   // Filter cards with rental exclusions for the Exclusions tab
-  const cardsWithExclusions = cards.filter(card => card && card.rentalExclusions);
+  const cardsWithExclusions = cards.filter((card) => card && card.rentalExclusions);
 
   const showTabs = isRentalCategory && cards.length > 0;
 
@@ -150,18 +142,19 @@ export function CategoryDetailSheet({
       {/* Coverage Sources (for non-auto or when no auto policy) */}
       {!hasAutoPolicy && sourceCount > 0 && (
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-foreground">
-            Your Coverage Sources
-          </h4>
+          <h4 className="text-sm font-semibold text-foreground">Your Coverage Sources</h4>
           <div className="flex flex-wrap gap-2">
-            {cards.map((card) => card && (
-              <span
-                key={card.id}
-                className="px-3 py-1.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground border border-primary/20"
-              >
-                💳 {card.name}
-              </span>
-            ))}
+            {cards.map(
+              (card) =>
+                card && (
+                  <span
+                    key={card.id}
+                    className="px-3 py-1.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground border border-primary/20"
+                  >
+                    💳 {card.name}
+                  </span>
+                ),
+            )}
             {policies.map((policy) => (
               <span
                 key={policy.id}
@@ -246,20 +239,21 @@ export function CategoryDetailSheet({
       {/* Rental-specific details */}
       {category.id === "travel-rental" && cards.length > 0 && (
         <div className="p-4 rounded-xl bg-accent/50 border border-primary/10">
-          <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-            Coverage Details
-          </h4>
+          <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">Coverage Details</h4>
           <div className="space-y-2">
-            {cards.map((card) => card && (
-              <div key={card.id} className="text-sm">
-                <span className="font-medium">{card.name}:</span>{" "}
-                <span className="text-muted-foreground">
-                  {card.rental?.coverageType === "primary" ? "Primary" : "Secondary"} coverage
-                  {card.rental?.maxCoverage && ` up to $${card.rental.maxCoverage.toLocaleString()}`}
-                  {card.rental?.maxDays && ` for ${card.rental.maxDays} days`}
-                </span>
-              </div>
-            ))}
+            {cards.map(
+              (card) =>
+                card && (
+                  <div key={card.id} className="text-sm">
+                    <span className="font-medium">{card.name}:</span>{" "}
+                    <span className="text-muted-foreground">
+                      {card.rental?.coverageType === "primary" ? "Primary" : "Secondary"} coverage
+                      {card.rental?.maxCoverage && ` up to $${card.rental.maxCoverage.toLocaleString()}`}
+                      {card.rental?.maxDays && ` for ${card.rental.maxDays} days`}
+                    </span>
+                  </div>
+                ),
+            )}
           </div>
         </div>
       )}
@@ -275,7 +269,8 @@ export function CategoryDetailSheet({
           <div>
             <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Important</p>
             <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-              Credit cards only cover vehicle damage (Protect the Car). They do NOT cover liability for injuring others. Check your auto insurance for liability coverage.
+              Credit cards only cover vehicle damage (Protect the Car). They do NOT cover liability for injuring others.
+              Check your auto insurance for liability coverage.
             </p>
           </div>
         </div>
@@ -284,9 +279,7 @@ export function CategoryDetailSheet({
       {/* Card-specific exclusions */}
       {cardsWithExclusions.length > 0 ? (
         <div className="space-y-4">
-          {cardsWithExclusions.map((card) => card && (
-            <CardExclusionsSection key={card.id} card={card} />
-          ))}
+          {cardsWithExclusions.map((card) => card && <CardExclusionsSection key={card.id} card={card} />)}
         </div>
       ) : (
         <div className="p-4 rounded-xl bg-muted/50 border border-dashed border-border text-center">
@@ -313,12 +306,8 @@ export function CategoryDetailSheet({
                 <CategoryIcon categoryId={category.id} className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <SheetTitle className="text-lg font-semibold">
-                  {category.title}
-                </SheetTitle>
-                <p className="text-sm text-muted-foreground">
-                  {category.subtitle}
-                </p>
+                <SheetTitle className="text-lg font-semibold">{category.title}</SheetTitle>
+                <p className="text-sm text-muted-foreground">{category.subtitle}</p>
               </div>
             </div>
             <StatusBadge status={status} />
@@ -327,13 +316,11 @@ export function CategoryDetailSheet({
 
         <div className="py-6">
           {/* Auto Insurance Policy Details */}
-          {hasAutoPolicy && (
-            <AutoPolicyDetails policy={autoPolicy} />
-          )}
+          {hasAutoPolicy && <AutoPolicyDetails policy={autoPolicy} />}
 
           {/* Non-auto content with optional tabs */}
-          {!hasAutoPolicy && (
-            showTabs ? (
+          {!hasAutoPolicy &&
+            (showTabs ? (
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-4">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -348,8 +335,7 @@ export function CategoryDetailSheet({
               </Tabs>
             ) : (
               <OverviewContent />
-            )
-          )}
+            ))}
         </div>
 
         {/* Footer Actions */}
@@ -408,29 +394,26 @@ export function CategoryDetailSheet({
               onClick={async (e) => {
                 e.preventDefault();
                 if (!autoPolicy) return;
-                
+
                 setIsDeleting(true);
                 try {
                   // Step 1: Get the document info first to get the file path
                   let filePath: string | null = null;
                   if (autoPolicy.document_id) {
                     const { data: docData, error: docFetchError } = await supabase
-                      .from('policy_documents')
-                      .select('file_path')
-                      .eq('id', autoPolicy.document_id)
+                      .from("policy_documents")
+                      .select("file_path")
+                      .eq("id", autoPolicy.document_id)
                       .maybeSingle();
-                    
+
                     if (docFetchError) {
-                      console.error('Error fetching document:', docFetchError);
+                      console.error("Error fetching document:", docFetchError);
                     }
                     filePath = docData?.file_path ?? null;
                   }
 
                   // Step 2: Delete from auto_policies table FIRST
-                  const { error: policyError } = await supabase
-                    .from('auto_policies')
-                    .delete()
-                    .eq('id', autoPolicy.id);
+                  const { error: policyError } = await supabase.from("auto_policies").delete().eq("id", autoPolicy.id);
 
                   if (policyError) {
                     throw new Error(`Failed to delete policy: ${policyError.message}`);
@@ -439,24 +422,23 @@ export function CategoryDetailSheet({
                   // Step 3: Delete from policy_documents table SECOND
                   if (autoPolicy.document_id) {
                     const { error: docError } = await supabase
-                      .from('policy_documents')
+                      .from("policy_documents")
                       .delete()
-                      .eq('id', autoPolicy.document_id);
+                      .eq("id", autoPolicy.document_id);
 
                     if (docError) {
-                      console.error('Error deleting document record:', docError);
+                      console.error("Error deleting document record:", docError);
                     }
                   }
 
                   // Step 4: Delete the file from storage LAST
                   if (filePath) {
-                    const { error: storageError } = await supabase
-                      .storage
-                      .from('insurance-documents')
+                    const { error: storageError } = await supabase.storage
+                      .from("insurance-documents")
                       .remove([filePath]);
 
                     if (storageError) {
-                      console.error('Error deleting file from storage:', storageError);
+                      console.error("Error deleting file from storage:", storageError);
                     }
                   }
 
@@ -464,18 +446,18 @@ export function CategoryDetailSheet({
                   if (autoPolicy.document_id) {
                     removePolicy(autoPolicy.document_id);
                   }
-                  
+
                   // Refetch to update local state
                   await refetchAutoPolicy();
-                  
+
                   // Close dialogs after state is updated
                   setShowDeleteDialog(false);
                   onOpenChange(false);
-                  
-                  toast.success('Policy deleted');
+
+                  toast.success("Policy deleted");
                 } catch (error) {
-                  console.error('Error deleting policy:', error);
-                  toast.error(error instanceof Error ? error.message : 'Failed to delete policy');
+                  console.error("Error deleting policy:", error);
+                  toast.error(error instanceof Error ? error.message : "Failed to delete policy");
                 } finally {
                   setIsDeleting(false);
                 }
@@ -488,7 +470,7 @@ export function CategoryDetailSheet({
                   Deleting...
                 </>
               ) : (
-                'Delete'
+                "Delete"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
