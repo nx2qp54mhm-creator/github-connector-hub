@@ -1,6 +1,13 @@
 import { CreditCard, CategoryGroup, CategoryDefinition, CommonPlan } from "@/types/coverage";
 
 const chaseExclusions = {
+  what_is_covered: [
+    "Collision damage to the rental vehicle",
+    "Theft of the rental vehicle",
+    "Loss-of-use charges from the rental company",
+    "Reasonable towing charges to the nearest repair facility",
+    "Valid administrative/surcharges from the rental company",
+  ],
   what_is_not_covered: [
     "Liability for injuries to any person",
     "Liability for damage to other vehicles or property",
@@ -26,6 +33,13 @@ const chaseExclusions = {
 };
 
 const amexExclusions = {
+  what_is_covered: [
+    "Collision damage to the rental vehicle",
+    "Theft of the rental vehicle",
+    "Vandalism damage",
+    "Valid loss-of-use charges",
+    "Towing to the nearest qualified repair facility",
+  ],
   what_is_not_covered: [
     "Liability for bodily injury or property damage to third parties",
     "Personal effects or belongings in the vehicle",
