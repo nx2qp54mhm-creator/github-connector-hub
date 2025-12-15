@@ -72,23 +72,3 @@ export async function askCoverageAssistant(
     };
   }
 }
-```
-
----
-
-## File Structure
-
-After creating the file, your `src` folder should look like:
-```
-src/
-├── components/
-│   ├── ChatDock.tsx
-│   └── ...
-├── services/          ← Create this folder
-│   └── coverageAssistant.ts   ← Create this file
-├── hooks/
-├── data/
-├── integrations/
-│   └── supabase/
-│       └── client.ts
-└── ...
