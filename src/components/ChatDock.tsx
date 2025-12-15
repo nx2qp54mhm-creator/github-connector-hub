@@ -24,9 +24,69 @@ export function ChatDock() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
-  const handleSend = () => {
-    const text = input.trim();
-    if (!text) return;
+ const handleSend = async () => {
+  const text = input.trim();
+  if (!text || isLoading) return;
+
+  console.log("1. handleSend triggered with:", text);
+
+  // Add user message
+  const userMessage: Message = {
+    id: `user-${Date.now()}`,
+    role: "user",
+    content: text,
+  };
+  setMessages((prev) => [...prev, userMessage]);
+  setInput("");
+
+  // Check if user has any coverage
+  console.log("2. totalItems:", totalItems);
+  
+  if (totalItems === 0) {
+    console.log("3. No items - showing empty state message");
+    setTimeout(() => {
+      const response: Message = {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content:
+          "Add some cards or policies to your Coverage Library first, and I'll be able to answer questions about your specific coverage.",
+      };
+      setMessages((prev) => [...prev, response]);
+    }, 300);
+    return;
+  }
+
+  // Build conversation history
+  const historyForApi: ChatMessage[] = messages
+    .filter((m) => m.id !== "welcome")
+    .map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+  const cards = getFormattedCards();
+  const policies = getFormattedPolicies();
+  
+  console.log("4. About to call API with:", {
+    question: text,
+    cards,
+    policies,
+    historyLength: historyForApi.length,
+  });
+
+  setIsLoading(true);
+
+  try {
+    console.log("5. Calling askCoverageAssistant...");
+    const result = await askCoverageAssistant(
+      text,
+      cards,
+      policies,
+      historyForApi
+    );
+    console.log("6. Got result:", result);
+
+    // ... rest of the function
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       role: "user",
