@@ -21,6 +21,27 @@ interface Message {
   content: string;
 }
 
+// Simple markdown renderer for bold text and line breaks
+function renderMarkdown(text: string): React.ReactNode {
+  // Split by double asterisks for bold
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  
+  return parts.map((part, index) => {
+    // Check if this part is bold (wrapped in **)
+    if (part.startsWith("**") && part.endsWith("**")) {
+      const boldText = part.slice(2, -2);
+      return <strong key={index}>{boldText}</strong>;
+    }
+    // Handle line breaks
+    return part.split("\n").map((line, lineIndex, arr) => (
+      <span key={`${index}-${lineIndex}`}>
+        {line}
+        {lineIndex < arr.length - 1 && <br />}
+      </span>
+    ));
+  });
+}
+
 export function ChatDock() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -39,26 +60,28 @@ export function ChatDock() {
   const uploadedPolicies = useCoverageStore((state) => state.uploadedPolicies);
   const totalItems = useCoverageStore((state) => state.getTotalItems());
 
-  // Transform cards into API format
+  // Transform cards into API format - FIXED to match cardDatabase structure
   const getFormattedCards = (): CoverageCardForAPI[] => {
     return selectedCards
       .map((cardId) => {
         const card = getCardById(cardId);
         if (!card) return null;
 
-        const rental = card.rental_car_coverage || {};
+        // Use the correct field names from cardDatabase
+        const rental = card.rental || {};
+        const exclusions = card.rentalExclusions || {};
 
         return {
-          card_name: card.name,
+          card_name: card.fullName || card.name,
           issuer: card.issuer,
-          coverage_type: rental.coverage_type,
-          max_coverage_amount: rental.max_coverage_amount,
-          what_is_covered: rental.what_is_covered,
-          what_is_not_covered: rental.what_is_not_covered,
-          vehicle_exclusions: rental.vehicle_exclusions,
-          exotic_vehicle_coverage: rental.exotic_vehicle_coverage,
-          country_exclusions: rental.country_exclusions,
-          activation_requirements: rental.activation_requirements,
+          coverage_type: rental.coverageType,
+          max_coverage_amount: rental.maxCoverage,
+          max_rental_days: rental.maxDays,
+          what_is_covered: exclusions.what_is_covered,
+          what_is_not_covered: exclusions.what_is_not_covered,
+          vehicle_exclusions: exclusions.vehicle_exclusions,
+          country_exclusions: exclusions.country_exclusions,
+          country_notes: exclusions.country_notes,
         };
       })
       .filter((card): card is CoverageCardForAPI => card !== null);
@@ -181,26 +204,29 @@ export function ChatDock() {
 
       <div
         ref={scrollRef}
-        className="flex-1 min-h-[180px] max-h-[240px] overflow-y-auto"
+        className="flex-1 min-h-[200px] max-h-[350px] overflow-y-auto"
       >
-        <div className="p-3 space-y-2">
+        <div className="p-4 space-y-3">
           {messages.map((message) => (
             <div
               key={message.id}
               className={cn(
-                "max-w-[85%] px-3 py-2 rounded-xl text-sm",
+                "max-w-[85%] px-4 py-3 rounded-xl text-sm leading-relaxed",
                 message.role === "user"
                   ? "ml-auto bg-secondary text-secondary-foreground rounded-br-sm"
                   : "bg-muted text-foreground rounded-bl-sm border border-border"
               )}
             >
-              {message.content}
+              {message.role === "assistant" 
+                ? renderMarkdown(message.content)
+                : message.content
+              }
             </div>
           ))}
 
           {/* Loading indicator */}
           {isLoading && (
-            <div className="max-w-[85%] px-3 py-2 rounded-xl text-sm bg-muted text-foreground rounded-bl-sm border border-border">
+            <div className="max-w-[85%] px-4 py-3 rounded-xl text-sm bg-muted text-foreground rounded-bl-sm border border-border">
               <div className="flex items-center gap-2">
                 <Loader2 className="w-3 h-3 animate-spin" />
                 <span className="text-muted-foreground">Thinking...</span>
@@ -210,7 +236,7 @@ export function ChatDock() {
         </div>
       </div>
 
-      <div className="p-3 border-t border-border space-y-2">
+      <div className="p-4 border-t border-border space-y-2">
         <div className="flex gap-2">
           <Input
             value={input}
