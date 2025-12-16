@@ -8,11 +8,13 @@ export interface CoverageCardForAPI {
   issuer: string;
   coverage_type?: string;
   max_coverage_amount?: number;
+  max_rental_days?: number;
   what_is_covered?: string[];
   what_is_not_covered?: string[];
   vehicle_exclusions?: string[];
   exotic_vehicle_coverage?: boolean;
   country_exclusions?: string[];
+  country_notes?: string;
   activation_requirements?: string[];
 }
 
