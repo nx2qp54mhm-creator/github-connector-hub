@@ -275,7 +275,7 @@ export const categoryGroups: CategoryGroup[] = [
   },
   {
     id: "foundational",
-    title: "Foundational",
+    title: "Home & Auto",
     subtitle: "Core insurance policies",
     categories: [
       {
