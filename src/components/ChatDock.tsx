@@ -1,7 +1,7 @@
 // src/components/ChatDock.tsx
 
 import { useState, useRef, useEffect } from "react";
-import { Send, MessageCircle, Info, Loader2 } from "lucide-react";
+import { Send, MessageCircle, Info, Loader2, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,12 @@ import { useCoverageStore } from "@/hooks/useCoverageStore";
 import { getCardById } from "@/data/cardDatabase";
 import { askCoverageAssistant, CoverageCardForAPI, CoveragePolicyForAPI, ChatMessage } from "@/services/coverageAssistant";
 import { cn } from "@/lib/utils";
+import { useRateLimiter } from "@/hooks/useRateLimiter";
+
+// Rate limit: 10 requests per minute
+const RATE_LIMIT_MAX_REQUESTS = 10;
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+
 interface Message {
   id: string;
   role: "user" | "assistant";
@@ -41,6 +47,12 @@ export function ChatDock() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  
+  // Rate limiting for chat requests
+  const { isLimited, remainingRequests, tryRequest } = useRateLimiter({
+    maxRequests: RATE_LIMIT_MAX_REQUESTS,
+    windowMs: RATE_LIMIT_WINDOW_MS,
+  });
 
   // Get data from the coverage store
   const selectedCards = useCoverageStore(state => state.selectedCards);
@@ -87,6 +99,17 @@ export function ChatDock() {
   const handleSend = async () => {
     const text = input.trim();
     if (!text || isLoading) return;
+
+    // Check rate limit before proceeding
+    if (!tryRequest()) {
+      const rateLimitMessage: Message = {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content: "You're sending messages too quickly. Please wait a moment before trying again."
+      };
+      setMessages(prev => [...prev, rateLimitMessage]);
+      return;
+    }
 
     // Add user message
     const userMessage: Message = {

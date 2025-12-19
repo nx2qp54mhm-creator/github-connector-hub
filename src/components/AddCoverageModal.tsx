@@ -9,6 +9,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useRateLimiter } from "@/hooks/useRateLimiter";
+
+// Rate limit: 5 document uploads per 5 minutes
+const UPLOAD_RATE_LIMIT_MAX = 5;
+const UPLOAD_RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
 
 const ALLOWED_TYPES = ["application/pdf", "image/png", "image/jpeg"];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -28,9 +33,16 @@ export function AddCoverageModal({
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadingFileName, setUploadingFileName] = useState<string | null>(null);
+  const [processingFiles, setProcessingFiles] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  
+  // Rate limiting for document uploads
+  const { isLimited: isUploadLimited, tryRequest: tryUpload } = useRateLimiter({
+    maxRequests: UPLOAD_RATE_LIMIT_MAX,
+    windowMs: UPLOAD_RATE_LIMIT_WINDOW_MS,
+  });
   
   const {
     selectedCards,
@@ -41,9 +53,16 @@ export function AddCoverageModal({
   } = useCoverageStore();
   const { refetch: refetchAutoPolicy } = useAutoPolicy();
 
-  const resetUploadState = () => {
+  const resetUploadState = (fileName?: string) => {
     setIsUploading(false);
     setIsProcessing(false);
+    if (fileName) {
+      setProcessingFiles(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(fileName);
+        return newSet;
+      });
+    }
     setUploadingFileName(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -57,6 +76,28 @@ export function AddCoverageModal({
       toast({
         title: "Authentication required",
         description: "Please log in to upload policies.",
+        variant: "destructive",
+      });
+      resetUploadState();
+      return;
+    }
+
+    // Check if this file is already being processed (prevent duplicates)
+    if (processingFiles.has(file.name)) {
+      toast({
+        title: "Already processing",
+        description: "This document is already being processed.",
+        variant: "destructive",
+      });
+      resetUploadState();
+      return;
+    }
+
+    // Check rate limit before proceeding
+    if (!tryUpload()) {
+      toast({
+        title: "Too many uploads",
+        description: "Please wait a few minutes before uploading more documents.",
         variant: "destructive",
       });
       resetUploadState();
@@ -84,6 +125,9 @@ export function AddCoverageModal({
       resetUploadState();
       return;
     }
+
+    // Track this file as being processed
+    setProcessingFiles(prev => new Set(prev).add(file.name));
 
     // Start upload
     setIsUploading(true);
@@ -153,7 +197,7 @@ export function AddCoverageModal({
           description: parseError.message || "Could not analyze the policy. You can try again later.",
           variant: "destructive",
         });
-        resetUploadState();
+        resetUploadState(file.name);
         return;
       }
 
@@ -183,7 +227,7 @@ export function AddCoverageModal({
         description: "Your coverage details have been extracted.",
       });
 
-      resetUploadState();
+      resetUploadState(file.name);
       onOpenChange(false);
     } catch (error) {
       console.error("Upload error:", error);
@@ -192,7 +236,7 @@ export function AddCoverageModal({
         description: error instanceof Error ? error.message : "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-      resetUploadState();
+      resetUploadState(file.name);
     }
   };
 
