@@ -54,21 +54,20 @@ export function ChatDock() {
       if (!card) return null;
 
       // Use the correct field names from cardDatabase
-      const rental = card.rental || {};
-      const exclusions = card.rentalExclusions || {};
+      const rental = card.rental;
+      const exclusions = card.rentalExclusions;
       return {
         card_name: card.fullName || card.name,
         issuer: card.issuer,
-        coverage_type: rental.coverageType,
-        max_coverage_amount: rental.maxCoverage,
-        max_rental_days: rental.maxDays,
-        what_is_covered: exclusions.what_is_covered,
-        what_is_not_covered: exclusions.what_is_not_covered,
-        vehicle_exclusions: exclusions.vehicle_exclusions,
-        country_exclusions: exclusions.country_exclusions,
-        country_notes: exclusions.country_notes
+        coverage_type: rental?.coverageType,
+        max_coverage_amount: rental?.maxCoverage,
+        max_rental_days: rental?.maxDays,
+        what_is_covered: exclusions?.what_is_covered,
+        what_is_not_covered: exclusions?.what_is_not_covered,
+        country_exclusions: exclusions?.country_exclusions,
+        country_notes: exclusions?.country_notes
       };
-    }).filter((card): card is CoverageCardForAPI => card !== null);
+    }).filter((card): card is NonNullable<typeof card> => card !== null) as CoverageCardForAPI[];
   };
 
   // Transform policies into API format
@@ -76,9 +75,6 @@ export function ChatDock() {
     return uploadedPolicies.map(policy => ({
       policy_name: policy.name,
       policy_type: policy.type,
-      coverage_details: policy.parsedData?.summary || undefined,
-      deductible: policy.parsedData?.deductible || undefined,
-      limits: policy.parsedData?.limits || undefined
     }));
   };
 
