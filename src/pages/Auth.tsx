@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import policyPocketLogo from "@/assets/policy-pocket-logo.jpeg";
 import { z } from "zod";
 
 const authSchema = z.object({
@@ -160,9 +161,13 @@ export default function Auth() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="mb-8 text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Shield className="h-10 w-10 text-primary" />
-          <h1 className="font-display text-4xl font-bold text-foreground">Covered</h1>
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <img 
+            src={policyPocketLogo} 
+            alt="Policy Pocket logo" 
+            className="h-12 w-12 object-contain"
+          />
+          <h1 className="font-display text-4xl font-bold text-foreground">Policy Pocket</h1>
         </div>
         <p className="text-muted-foreground">Your coverage intelligence system</p>
       </div>
