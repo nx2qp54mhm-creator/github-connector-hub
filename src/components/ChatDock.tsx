@@ -103,7 +103,7 @@ export function ChatDock() {
     // Check rate limit before proceeding
     if (!tryRequest()) {
       const rateLimitMessage: Message = {
-        id: `assistant-${Date.now()}`,
+        id: crypto.randomUUID(),
         role: "assistant",
         content: "You're sending messages too quickly. Please wait a moment before trying again."
       };
@@ -113,7 +113,7 @@ export function ChatDock() {
 
     // Add user message
     const userMessage: Message = {
-      id: `user-${Date.now()}`,
+      id: crypto.randomUUID(),
       role: "user",
       content: text
     };
@@ -124,7 +124,7 @@ export function ChatDock() {
     if (totalItems === 0) {
       setTimeout(() => {
         const response: Message = {
-          id: `assistant-${Date.now()}`,
+          id: crypto.randomUUID(),
           role: "assistant",
           content: "Add some cards or policies to your Coverage Library first, and I'll be able to answer questions about your specific coverage."
         };
@@ -145,14 +145,14 @@ export function ChatDock() {
       const result = await askCoverageAssistant(text, cards, policies, historyForApi);
       if (result.success && result.response) {
         const assistantMessage: Message = {
-          id: `assistant-${Date.now()}`,
+          id: crypto.randomUUID(),
           role: "assistant",
           content: result.response
         };
         setMessages(prev => [...prev, assistantMessage]);
       } else {
         const errorMessage: Message = {
-          id: `assistant-${Date.now()}`,
+          id: crypto.randomUUID(),
           role: "assistant",
           content: result.error || "Sorry, I encountered an error. Please try again."
         };
@@ -160,7 +160,7 @@ export function ChatDock() {
       }
     } catch (err) {
       const errorMessage: Message = {
-        id: `assistant-${Date.now()}`,
+        id: crypto.randomUUID(),
         role: "assistant",
         content: "Sorry, I couldn't connect. Please check your connection and try again."
       };

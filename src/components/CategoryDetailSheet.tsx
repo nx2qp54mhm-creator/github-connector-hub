@@ -12,6 +12,7 @@ import { useAutoPolicy } from "@/hooks/useAutoPolicy";
 import { AutoPolicyDetails } from "@/components/AutoPolicyDetails";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -119,6 +120,7 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
   const getSourcesForCategory = useCoverageStore((state) => state.getSourcesForCategory);
   const removePolicy = useCoverageStore((state) => state.removePolicy);
   const { autoPolicy, refetch: refetchAutoPolicy } = useAutoPolicy();
+  const { user } = useAuth();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -345,7 +347,7 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
               disabled={isDeleting}
               onClick={async (e) => {
                 e.preventDefault();
-                if (!autoPolicy) return;
+                if (!autoPolicy || !user) return;
 
                 setIsDeleting(true);
                 try {
@@ -356,6 +358,7 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
                       .from("policy_documents")
                       .select("file_path")
                       .eq("id", autoPolicy.document_id)
+                      .eq("user_id", user.id) // Verify user owns this document
                       .maybeSingle();
 
                     if (docFetchError) {
@@ -365,7 +368,12 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
                   }
 
                   // Step 2: Delete from auto_policies table FIRST
-                  const { error: policyError } = await supabase.from("auto_policies").delete().eq("id", autoPolicy.id);
+                  // Add user_id check to prevent unauthorized deletion
+                  const { error: policyError } = await supabase
+                    .from("auto_policies")
+                    .delete()
+                    .eq("id", autoPolicy.id)
+                    .eq("user_id", user.id);
 
                   if (policyError) {
                     throw new Error(`Failed to delete policy: ${policyError.message}`);
@@ -376,7 +384,8 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
                     const { error: docError } = await supabase
                       .from("policy_documents")
                       .delete()
-                      .eq("id", autoPolicy.document_id);
+                      .eq("id", autoPolicy.document_id)
+                      .eq("user_id", user.id); // Verify user owns this document
 
                     if (docError) {
                       console.error("Error deleting document record:", docError);

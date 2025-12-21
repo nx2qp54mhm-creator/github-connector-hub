@@ -57,23 +57,27 @@ export function useAutoPolicy() {
     if (isFetching.current) return;
     isFetching.current = true;
     setLoading(true);
-    
-    const { data, error } = await supabase
-      .from("auto_policies")
-      .select("*")
-      .eq("user_id", uid)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
 
-    if (error) {
-      console.error("Error fetching auto policy:", error);
+    try {
+      const { data, error } = await supabase
+        .from("auto_policies")
+        .select("*")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching auto policy:", error);
+      }
+
+      setAutoPolicy(data);
+      setLastFetchedUserId(uid);
+    } finally {
+      // Always reset the fetching flag and loading state, even on error
+      setLoading(false);
+      isFetching.current = false;
     }
-
-    setAutoPolicy(data);
-    setLoading(false);
-    setLastFetchedUserId(uid);
-    isFetching.current = false;
   };
 
   useEffect(() => {
