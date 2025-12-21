@@ -1,5 +1,4 @@
-import { useEffect, useRef } from "react";
-import { create } from "zustand";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
@@ -30,83 +29,41 @@ export interface AutoPolicy {
   premium_frequency: string | null;
 }
 
-interface AutoPolicyStore {
-  autoPolicy: AutoPolicy | null;
-  loading: boolean;
-  lastFetchedUserId: string | null;
-  setAutoPolicy: (policy: AutoPolicy | null) => void;
-  setLoading: (loading: boolean) => void;
-  setLastFetchedUserId: (userId: string | null) => void;
-}
+async function fetchAutoPolicy(userId: string): Promise<AutoPolicy | null> {
+  const { data, error } = await supabase
+    .from("auto_policies")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-const useAutoPolicyStore = create<AutoPolicyStore>((set) => ({
-  autoPolicy: null,
-  loading: true,
-  lastFetchedUserId: null,
-  setAutoPolicy: (policy) => set({ autoPolicy: policy }),
-  setLoading: (loading) => set({ loading }),
-  setLastFetchedUserId: (userId) => set({ lastFetchedUserId: userId }),
-}));
+  if (error) {
+    console.error("Error fetching auto policy:", error);
+    throw error;
+  }
+
+  return data;
+}
 
 export function useAutoPolicy() {
   const { user } = useAuth();
-  const { autoPolicy, loading, lastFetchedUserId, setAutoPolicy, setLoading, setLastFetchedUserId } = useAutoPolicyStore();
-  const isFetching = useRef(false);
 
-  const fetchAutoPolicy = async (uid: string) => {
-    if (isFetching.current) return;
-    isFetching.current = true;
-    setLoading(true);
+  const {
+    data: autoPolicy,
+    isLoading: loading,
+    refetch,
+  } = useQuery({
+    queryKey: ["autoPolicy", user?.id],
+    queryFn: () => fetchAutoPolicy(user!.id),
+    enabled: !!user?.id, // Only fetch if user is logged in
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes (formerly cacheTime)
+  });
 
-    try {
-      const { data, error } = await supabase
-        .from("auto_policies")
-        .select("*")
-        .eq("user_id", uid)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error fetching auto policy:", error);
-      }
-
-      setAutoPolicy(data);
-      setLastFetchedUserId(uid);
-    } finally {
-      // Always reset the fetching flag and loading state, even on error
-      setLoading(false);
-      isFetching.current = false;
-    }
+  return {
+    autoPolicy: autoPolicy ?? null,
+    loading,
+    refetch,
   };
-
-  useEffect(() => {
-    const userId = user?.id;
-    
-    if (!userId) {
-      if (lastFetchedUserId !== null) {
-        setAutoPolicy(null);
-        setLastFetchedUserId(null);
-        setLoading(false);
-      }
-      return;
-    }
-
-    // Only fetch if user changed
-    if (lastFetchedUserId !== userId && !isFetching.current) {
-      fetchAutoPolicy(userId);
-    }
-  }, [user?.id, lastFetchedUserId]);
-
-  const refetch = async () => {
-    if (!user) {
-      setAutoPolicy(null);
-      setLoading(false);
-      return;
-    }
-    isFetching.current = false; // Reset to allow refetch
-    await fetchAutoPolicy(user.id);
-  };
-
-  return { autoPolicy, loading, refetch };
 }
