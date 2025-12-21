@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -9,7 +10,7 @@ interface CategoryCardProps {
   category: CategoryDefinition;
   onClick: () => void;
 }
-export function CategoryCard({
+export const CategoryCard = memo(function CategoryCard({
   category,
   onClick
 }: CategoryCardProps) {
@@ -38,9 +39,9 @@ export function CategoryCard({
           <span className="text-xs text-muted-foreground hidden sm:inline">
             {sourceCount} source{sourceCount !== 1 ? "s" : ""}
           </span>
-          
+
           <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
         </div>
       </div>
     </Card>;
-}
+});

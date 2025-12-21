@@ -1,6 +1,6 @@
 // src/components/ChatDock.tsx
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Send, MessageCircle, Info, Loader2, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,10 +15,24 @@ import { useRateLimiter } from "@/hooks/useRateLimiter";
 const RATE_LIMIT_MAX_REQUESTS = 10;
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
 
+// Max messages to keep in memory (prevents unbounded growth)
+const MAX_MESSAGES = 50;
+
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+}
+
+// Helper to limit message history to prevent memory leaks
+function limitMessages(messages: Message[]): Message[] {
+  if (messages.length <= MAX_MESSAGES) return messages;
+  // Keep welcome message if it exists, plus the last (MAX_MESSAGES - 1) messages
+  const welcomeMsg = messages.find(m => m.id === "welcome");
+  const recentMessages = messages.slice(-MAX_MESSAGES + (welcomeMsg ? 1 : 0));
+  return welcomeMsg && !recentMessages.find(m => m.id === "welcome")
+    ? [welcomeMsg, ...recentMessages]
+    : recentMessages;
 }
 
 // Simple markdown renderer for bold text and line breaks
@@ -59,8 +73,8 @@ export function ChatDock() {
   const uploadedPolicies = useCoverageStore(state => state.uploadedPolicies);
   const totalItems = useCoverageStore(state => state.getTotalItems());
 
-  // Transform cards into API format - FIXED to match cardDatabase structure
-  const getFormattedCards = (): CoverageCardForAPI[] => {
+  // Memoize formatted cards to prevent recalculation on every render
+  const formattedCards = useMemo((): CoverageCardForAPI[] => {
     return selectedCards.map(cardId => {
       const card = getCardById(cardId);
       if (!card) return null;
@@ -80,15 +94,15 @@ export function ChatDock() {
         country_notes: exclusions?.country_notes
       };
     }).filter((card): card is NonNullable<typeof card> => card !== null) as CoverageCardForAPI[];
-  };
+  }, [selectedCards]);
 
-  // Transform policies into API format
-  const getFormattedPolicies = (): CoveragePolicyForAPI[] => {
+  // Memoize formatted policies to prevent recalculation on every render
+  const formattedPolicies = useMemo((): CoveragePolicyForAPI[] => {
     return uploadedPolicies.map(policy => ({
       policy_name: policy.name,
       policy_type: policy.type,
     }));
-  };
+  }, [uploadedPolicies]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -107,7 +121,7 @@ export function ChatDock() {
         role: "assistant",
         content: "You're sending messages too quickly. Please wait a moment before trying again."
       };
-      setMessages(prev => [...prev, rateLimitMessage]);
+      setMessages(prev => limitMessages([...prev, rateLimitMessage]));
       return;
     }
 
@@ -117,7 +131,7 @@ export function ChatDock() {
       role: "user",
       content: text
     };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages(prev => limitMessages([...prev, userMessage]));
     setInput("");
 
     // Check if user has any coverage
@@ -128,7 +142,7 @@ export function ChatDock() {
           role: "assistant",
           content: "Add some cards or policies to your Coverage Library first, and I'll be able to answer questions about your specific coverage."
         };
-        setMessages(prev => [...prev, response]);
+        setMessages(prev => limitMessages([...prev, response]));
       }, 300);
       return;
     }
@@ -138,25 +152,23 @@ export function ChatDock() {
       role: m.role,
       content: m.content
     }));
-    const cards = getFormattedCards();
-    const policies = getFormattedPolicies();
     setIsLoading(true);
     try {
-      const result = await askCoverageAssistant(text, cards, policies, historyForApi);
+      const result = await askCoverageAssistant(text, formattedCards, formattedPolicies, historyForApi);
       if (result.success && result.response) {
         const assistantMessage: Message = {
           id: crypto.randomUUID(),
           role: "assistant",
           content: result.response
         };
-        setMessages(prev => [...prev, assistantMessage]);
+        setMessages(prev => limitMessages([...prev, assistantMessage]));
       } else {
         const errorMessage: Message = {
           id: crypto.randomUUID(),
           role: "assistant",
           content: result.error || "Sorry, I encountered an error. Please try again."
         };
-        setMessages(prev => [...prev, errorMessage]);
+        setMessages(prev => limitMessages([...prev, errorMessage]));
       }
     } catch (err) {
       const errorMessage: Message = {
@@ -164,7 +176,7 @@ export function ChatDock() {
         role: "assistant",
         content: "Sorry, I couldn't connect. Please check your connection and try again."
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => limitMessages([...prev, errorMessage]));
     } finally {
       setIsLoading(false);
     }

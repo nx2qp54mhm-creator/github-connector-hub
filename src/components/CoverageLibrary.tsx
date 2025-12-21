@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { X, CreditCard, FileText, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,13 @@ export function CoverageLibrary() {
     removePolicy,
     removePlan
   } = useCoverageStore();
-  const cards = selectedCards.map(id => getCardById(id)).filter(Boolean);
+
+  // Memoize card lookups to prevent recalculation on every render
+  const cards = useMemo(() =>
+    selectedCards.map(id => getCardById(id)).filter(Boolean),
+    [selectedCards]
+  );
+
   const isEmpty = selectedCards.length === 0 && uploadedPolicies.length === 0 && addedPlans.length === 0;
   const formatDate = (iso: string) => {
     const date = new Date(iso);

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ChevronRight, Shield } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -11,7 +12,7 @@ interface AutoInsuranceCardProps {
   onClick: () => void;
 }
 
-export function AutoInsuranceCard({ category, onClick }: AutoInsuranceCardProps) {
+export const AutoInsuranceCard = memo(function AutoInsuranceCard({ category, onClick }: AutoInsuranceCardProps) {
   const { autoPolicy, loading } = useAutoPolicy();
 
   // Empty state - no policy
@@ -83,4 +84,4 @@ export function AutoInsuranceCard({ category, onClick }: AutoInsuranceCardProps)
       </div>
     </Card>
   );
-}
+});
