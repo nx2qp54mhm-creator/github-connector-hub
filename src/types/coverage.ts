@@ -33,12 +33,6 @@ export interface CreditCard {
     maxDays: number;
   };
   rentalExclusions?: RentalExclusions;
-  // Additional rental properties for comparison view
-  rentalCoverageType?: "primary" | "secondary";
-  rentalCoverageLimit?: number;
-  rentalMaxDays?: number;
-  rentalExoticCovered?: boolean;
-  rentalReportDays?: number;
 }
 
 export interface Policy {
