@@ -88,6 +88,10 @@ export function ChatDock() {
       const purchase = card.purchaseProtection;
       const warranty = card.extendedWarranty;
       const perks = card.travelPerks;
+      const emergency = card.emergencyAssistance;
+      const roadside = card.roadsideAssistance;
+      const cellPhone = card.cellPhoneProtection;
+      const returnProt = card.returnProtection;
 
       return {
         card_name: card.fullName || card.name,
@@ -142,16 +146,52 @@ export function ChatDock() {
           travel_credits: perks.travel_credits,
           other_perks: perks.other_perks,
         } : undefined,
+        // Emergency assistance
+        emergency_assistance: emergency ? {
+          evacuation_coverage: emergency.evacuation_coverage,
+          medical_coverage: emergency.medical_coverage,
+          services: emergency.services,
+          coverage_details: emergency.coverage_details,
+          exclusions: emergency.exclusions,
+        } : undefined,
+        // Roadside assistance
+        roadside_assistance: roadside ? {
+          provider: roadside.provider,
+          towing_miles: roadside.towing_miles,
+          services: roadside.services,
+          coverage_details: roadside.coverage_details,
+          limitations: roadside.limitations,
+        } : undefined,
+        // Cell phone protection
+        cell_phone_protection: cellPhone ? {
+          max_per_claim: cellPhone.max_per_claim,
+          max_claims_per_year: cellPhone.max_claims_per_year,
+          deductible: cellPhone.deductible,
+          coverage_details: cellPhone.coverage_details,
+          requirements: cellPhone.requirements,
+          exclusions: cellPhone.exclusions,
+        } : undefined,
+        // Return protection
+        return_protection: returnProt ? {
+          max_per_item: returnProt.max_per_item,
+          max_per_year: returnProt.max_per_year,
+          return_window_days: returnProt.return_window_days,
+          coverage_details: returnProt.coverage_details,
+          exclusions: returnProt.exclusions,
+        } : undefined,
       };
     }).filter((card): card is NonNullable<typeof card> => card !== null) as CoverageCardForAPI[];
   }, [selectedCards]);
 
   // Memoize formatted policies to prevent recalculation on every render
   const formattedPolicies = useMemo((): CoveragePolicyForAPI[] => {
-    // Include uploaded policies
+    // Include uploaded policies with their structured coverage data
     const policies: CoveragePolicyForAPI[] = uploadedPolicies.map(policy => ({
       policy_name: policy.name,
       policy_type: policy.type,
+      auto_coverage: policy.autoCoverage,
+      home_coverage: policy.homeCoverage,
+      renters_coverage: policy.rentersCoverage,
     }));
 
     // Include added common plans with their details
