@@ -1,0 +1,117 @@
+{
+  "templateType": "phone-auto",
+  "metadata": {
+    "lastUpdated": "2025-01-15",
+    "version": "1.0.0",
+    "notes": "Cell phone protection and roadside assistance benefit templates"
+  },
+  "cellPhoneProtection": {
+    "chase-ink": {
+      "id": "chase-ink-cell-phone",
+      "name": "Chase Ink Cell Phone Protection",
+      "tier": "premium",
+      "issuer": "Chase",
+      "maxPerClaim": 1000,
+      "maxClaimsPerYear": 3,
+      "deductible": 100,
+      "coverageDetails": [
+        "Covers theft and damage to cell phones",
+        "Up to $1,000 per claim, $3,000 per year",
+        "Covers you and employees listed on your cell phone bill"
+      ],
+      "requirements": [
+        "Pay your monthly cell phone bill with your card",
+        "File claim within 90 days of incident",
+        "Provide copy of cell phone bill showing payment"
+      ],
+      "exclusions": [
+        "Mysterious disappearance (without evidence of theft)",
+        "Phones not listed on your wireless bill",
+        "Cosmetic damage that doesn't affect function",
+        "Intentional damage",
+        "Loss (not theft)"
+      ]
+    }
+  },
+  "roadsideAssistance": {
+    "chase-premium": {
+      "id": "chase-roadside-premium",
+      "name": "Chase Premium Roadside Assistance",
+      "tier": "premium",
+      "issuer": "Chase",
+      "provider": "Cross Country Motor Club",
+      "towingMiles": 10,
+      "services": [
+        "Towing (up to 10 miles)",
+        "Flat tire change (using your spare)",
+        "Jump start for dead battery",
+        "Lockout service (up to $50)",
+        "Fuel delivery (up to 2 gallons, you pay for fuel)",
+        "Winching (if stuck within 100 feet of road)"
+      ],
+      "coverageDetails": [
+        "Available 24/7, 365 days a year",
+        "Covers any vehicle you're driving or riding in",
+        "No limit on number of service calls per year",
+        "Service available in US and Canada"
+      ],
+      "limitations": [
+        "Towing beyond 10 miles at your expense",
+        "Does not cover repair costs",
+        "May have wait times during peak periods",
+        "Lockout service capped at $50"
+      ]
+    },
+    "chase-standard": {
+      "id": "chase-roadside-standard",
+      "name": "Chase Standard Roadside Assistance",
+      "tier": "standard",
+      "issuer": "Chase",
+      "provider": "Cross Country Motor Club",
+      "towingMiles": 5,
+      "services": [
+        "Towing (up to 5 miles)",
+        "Flat tire change (using your spare)",
+        "Jump start for dead battery",
+        "Lockout service (up to $50)"
+      ],
+      "coverageDetails": [
+        "Available 24/7, 365 days a year",
+        "Covers any vehicle you're driving",
+        "Up to 4 service calls per year"
+      ],
+      "limitations": [
+        "Limited to 4 calls per year",
+        "Towing beyond 5 miles at your expense",
+        "Does not cover repair costs"
+      ]
+    },
+    "amex-premium": {
+      "id": "amex-roadside-premium",
+      "name": "Amex Premium Roadside Assistance",
+      "tier": "premium",
+      "issuer": "American Express",
+      "provider": "American Express Roadside Assistance",
+      "towingMiles": 10,
+      "services": [
+        "Towing (up to 10 miles)",
+        "Flat tire service",
+        "Dead battery jump start",
+        "Locksmith services (up to $100 for parts/labor)",
+        "Emergency fuel delivery (up to 5 gallons, fuel cost covered)",
+        "Winching/extrication services"
+      ],
+      "coverageDetails": [
+        "Available 24 hours a day, 365 days a year",
+        "Up to 4 service calls per 12-month period",
+        "Service available in the US and Canada",
+        "No membership fees - included with your card"
+      ],
+      "limitations": [
+        "Maximum 4 service calls per year",
+        "Towing beyond 10 miles at cardholder's expense",
+        "Wait times may apply during high-demand periods"
+      ]
+    }
+  }
+}

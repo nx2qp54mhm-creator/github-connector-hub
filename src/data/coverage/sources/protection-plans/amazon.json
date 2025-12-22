@@ -1,0 +1,107 @@
+{
+  "provider": "Amazon",
+  "sourceType": "protection-plan",
+  "metadata": {
+    "lastUpdated": "2025-01-15",
+    "version": "1.0.0",
+    "sourceUrl": "https://www.amazon.com/b?node=15350177011",
+    "notes": "Amazon protection and extended warranty plans"
+  },
+  "plans": [
+    {
+      "id": "amazon_protection_plan",
+      "name": "Amazon Protection",
+      "fullName": "Amazon Protection Plan",
+      "planType": "purchase",
+      "cost": {
+        "type": "variable",
+        "note": "Varies by product price and coverage length ($10-$200+ typically)"
+      },
+      "categories": ["purchase-warranty"],
+      "eligibleProducts": [
+        "Electronics",
+        "Appliances",
+        "Furniture",
+        "Outdoor equipment",
+        "Sporting goods",
+        "Tools"
+      ],
+      "purchaseRequirements": [
+        "Must be purchased at same time as eligible product",
+        "Product must be sold by Amazon or qualifying seller"
+      ],
+      "benefits": {
+        "purchase-warranty": {
+          "coverageLevel": "full",
+          "limits": {
+            "durationOptions": "1-4 years depending on plan",
+            "maxCoverage": "Original purchase price"
+          },
+          "covered": [
+            "Extends manufacturer warranty by 1-4 years depending on plan",
+            "Covers mechanical and electrical failures",
+            "No deductibles on claims",
+            "Accidental damage from handling (on select plans)",
+            "Power surge protection",
+            "Free shipping for repairs",
+            "Replacement if repair not possible"
+          ],
+          "notCovered": [
+            "Pre-existing conditions or defects",
+            "Cosmetic damage that doesn't affect functionality",
+            "Consumable parts (filters, bulbs, batteries)",
+            "Commercial or rental use",
+            "Intentional damage or misuse",
+            "Software issues or data loss",
+            "Accessories not included with original product"
+          ],
+          "conditions": [
+            "File claims through Amazon",
+            "May require product return for inspection",
+            "Replacement products may be refurbished"
+          ]
+        }
+      }
+    },
+    {
+      "id": "amazon_accident_protection",
+      "name": "Amazon Accident Protection",
+      "fullName": "Amazon Accidental Damage Protection Plan",
+      "planType": "purchase",
+      "cost": {
+        "type": "variable",
+        "note": "Higher than standard protection, varies by product"
+      },
+      "categories": ["purchase-warranty", "purchase-protection"],
+      "eligibleProducts": [
+        "Laptops",
+        "Tablets",
+        "Cameras",
+        "Portable electronics"
+      ],
+      "benefits": {
+        "purchase-warranty": {
+          "coverageLevel": "full",
+          "limits": {
+            "durationOptions": "2-4 years",
+            "maxCoverage": "Original purchase price",
+            "accidentalDamageClaims": "Unlimited during coverage period"
+          },
+          "covered": [
+            "All standard warranty coverage",
+            "Drops and spills",
+            "Cracked screens",
+            "Liquid damage",
+            "Accidental damage from normal use"
+          ],
+          "notCovered": [
+            "Intentional damage",
+            "Lost or stolen items",
+            "Cosmetic damage only",
+            "Software issues"
+          ]
+        }
+      }
+    }
+  ]
+}

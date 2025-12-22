@@ -1,0 +1,237 @@
+{
+  "policyType": "home",
+  "sourceType": "policy",
+  "metadata": {
+    "lastUpdated": "2025-01-15",
+    "version": "1.0.0",
+    "notes": "Template for parsing and mapping homeowners/renters insurance policy data"
+  },
+  "categories": ["foundational-home"],
+  "displayName": "Homeowners/Renters Insurance Policy",
+  "description": "Property and liability coverage for your home or rental",
+  "extractionSchema": {
+    "required": [
+      "dwelling",
+      "personalProperty",
+      "liability"
+    ],
+    "optional": [
+      "lossOfUse",
+      "medicalPayments",
+      "otherStructures",
+      "valuablesSchedule",
+      "waterBackup",
+      "identityTheft"
+    ],
+    "identifiers": [
+      "policyNumber",
+      "carrier",
+      "effectiveDate",
+      "expirationDate",
+      "namedInsured",
+      "propertyAddress",
+      "policyForm"
+    ]
+  },
+  "policyForms": {
+    "HO-1": "Basic Form (named perils only)",
+    "HO-2": "Broad Form (more perils covered)",
+    "HO-3": "Special Form (most common, open perils for dwelling)",
+    "HO-4": "Renters Insurance (contents only)",
+    "HO-5": "Comprehensive Form (open perils for dwelling and contents)",
+    "HO-6": "Condo Insurance",
+    "HO-8": "Older Home Form (actual cash value)"
+  },
+  "fieldDefinitions": {
+    "dwelling": {
+      "displayName": "Dwelling Coverage (Coverage A)",
+      "description": "Covers the structure of your home",
+      "subFields": {
+        "limit": {
+          "type": "currency",
+          "description": "Maximum coverage for dwelling"
+        },
+        "deductible": {
+          "type": "currency",
+          "description": "Amount you pay before coverage kicks in"
+        },
+        "valuationType": {
+          "type": "string",
+          "options": ["Replacement Cost", "Actual Cash Value"],
+          "description": "How claims are valued"
+        }
+      }
+    },
+    "otherStructures": {
+      "displayName": "Other Structures (Coverage B)",
+      "description": "Covers detached structures (garage, shed, fence)",
+      "subFields": {
+        "limit": {
+          "type": "currency",
+          "description": "Usually 10% of dwelling coverage"
+        }
+      }
+    },
+    "personalProperty": {
+      "displayName": "Personal Property (Coverage C)",
+      "description": "Covers your belongings",
+      "subFields": {
+        "limit": {
+          "type": "currency",
+          "description": "Maximum coverage for contents"
+        },
+        "deductible": {
+          "type": "currency"
+        },
+        "valuationType": {
+          "type": "string",
+          "options": ["Replacement Cost", "Actual Cash Value"]
+        },
+        "offPremisesLimit": {
+          "type": "percentage",
+          "description": "Coverage for items away from home (usually 10%)"
+        }
+      }
+    },
+    "lossOfUse": {
+      "displayName": "Loss of Use (Coverage D)",
+      "description": "Covers additional living expenses if home is uninhabitable",
+      "subFields": {
+        "limit": {
+          "type": "currency",
+          "description": "Maximum for additional living expenses"
+        },
+        "timeLimit": {
+          "type": "string",
+          "description": "Maximum time period covered"
+        }
+      }
+    },
+    "liability": {
+      "displayName": "Personal Liability (Coverage E)",
+      "description": "Covers you if someone is injured on your property",
+      "subFields": {
+        "limit": {
+          "type": "currency",
+          "description": "Maximum per occurrence"
+        }
+      }
+    },
+    "medicalPayments": {
+      "displayName": "Medical Payments (Coverage F)",
+      "description": "Covers minor injuries to guests regardless of fault",
+      "subFields": {
+        "perPerson": {
+          "type": "currency"
+        }
+      }
+    },
+    "valuablesSchedule": {
+      "displayName": "Scheduled Personal Property",
+      "description": "Additional coverage for high-value items (jewelry, art, etc.)",
+      "subFields": {
+        "items": {
+          "type": "array",
+          "description": "List of scheduled items with values"
+        }
+      }
+    },
+    "waterBackup": {
+      "displayName": "Water Backup Coverage",
+      "description": "Covers damage from sewer/drain backup",
+      "subFields": {
+        "limit": {
+          "type": "currency"
+        }
+      }
+    },
+    "identityTheft": {
+      "displayName": "Identity Theft Coverage",
+      "description": "Covers expenses related to identity theft",
+      "subFields": {
+        "limit": {
+          "type": "currency"
+        }
+      }
+    }
+  },
+  "benefitMapping": {
+    "foundational-home": {
+      "fields": ["dwelling", "personalProperty", "liability", "lossOfUse", "medicalPayments"],
+      "coverageLevel": "full",
+      "defaultCovered": [
+        "Dwelling coverage for home structure",
+        "Personal property coverage for belongings",
+        "Personal liability protection",
+        "Additional living expenses if home is uninhabitable",
+        "Medical payments for guest injuries"
+      ],
+      "defaultNotCovered": [
+        "Flood damage (requires separate flood insurance)",
+        "Earthquake damage (requires separate coverage)",
+        "Normal wear and tear",
+        "Intentional damage",
+        "Neglect or lack of maintenance",
+        "War or nuclear hazard",
+        "Government action"
+      ]
+    }
+  },
+  "defaultBenefits": {
+    "foundational-home": {
+      "coverageLevel": "full",
+      "covered": [
+        "Fire and smoke damage",
+        "Wind and hail damage",
+        "Theft",
+        "Vandalism",
+        "Lightning strikes",
+        "Weight of ice, snow, or sleet",
+        "Accidental water damage from plumbing",
+        "Falling objects"
+      ],
+      "notCovered": [
+        "Flood damage",
+        "Earthquake damage",
+        "Pest infestation",
+        "Mold (unless caused by covered peril)",
+        "Ordinance or law compliance costs",
+        "Business property"
+      ],
+      "conditions": [
+        "Must maintain property in good condition",
+        "Notify carrier promptly of claims",
+        "Cooperate with claim investigation"
+      ]
+    }
+  },
+  "commonPerils": {
+    "named": [
+      "Fire or lightning",
+      "Windstorm or hail",
+      "Explosion",
+      "Riot or civil commotion",
+      "Aircraft damage",
+      "Vehicle damage",
+      "Smoke damage",
+      "Vandalism or malicious mischief",
+      "Theft",
+      "Volcanic eruption",
+      "Falling objects",
+      "Weight of ice, snow, or sleet",
+      "Water damage from plumbing",
+      "Electrical damage"
+    ],
+    "excluded": [
+      "Flood",
+      "Earthquake",
+      "War",
+      "Nuclear hazard",
+      "Government action",
+      "Neglect",
+      "Earth movement",
+      "Power failure (off premises)",
+      "Intentional loss"
+    ]
+  }
+}

@@ -1,0 +1,396 @@
+{
+  "templateType": "travel",
+  "metadata": {
+    "lastUpdated": "2025-01-15",
+    "version": "1.0.0",
+    "notes": "Travel benefit templates including trip protection, baggage, rental exclusions, and emergency assistance"
+  },
+  "tripProtection": {
+    "chase-premium": {
+      "id": "chase-trip-premium",
+      "name": "Chase Premium Trip Protection",
+      "tier": "premium",
+      "issuer": "Chase",
+      "cancellationCoverage": 10000,
+      "interruptionCoverage": 10000,
+      "delayCoverage": 500,
+      "delayThresholdHours": 6,
+      "coveredReasons": [
+        "Sickness, injury, or death of you, a traveling companion, or family member",
+        "Severe weather that prevents travel",
+        "Terrorism or hijacking",
+        "Jury duty or court subpoena",
+        "Job loss or transfer",
+        "Traffic accident en route to departure"
+      ],
+      "exclusions": [
+        "Pre-existing medical conditions (unless premium waiver applies)",
+        "Change of plans or fear of traveling",
+        "Financial default of travel supplier (unless specific conditions met)",
+        "Government travel warnings issued before booking"
+      ]
+    },
+    "chase-standard": {
+      "id": "chase-trip-standard",
+      "name": "Chase Standard Trip Protection",
+      "tier": "standard",
+      "issuer": "Chase",
+      "cancellationCoverage": 5000,
+      "interruptionCoverage": 5000,
+      "delayCoverage": 500,
+      "delayThresholdHours": 12,
+      "coveredReasons": [
+        "Sickness, injury, or death of you, a traveling companion, or family member",
+        "Severe weather that prevents travel",
+        "Jury duty or court subpoena"
+      ],
+      "exclusions": [
+        "Pre-existing medical conditions",
+        "Change of plans or fear of traveling",
+        "Financial default of travel supplier"
+      ]
+    },
+    "amex-premium": {
+      "id": "amex-trip-premium",
+      "name": "Amex Premium Trip Protection",
+      "tier": "premium",
+      "issuer": "American Express",
+      "cancellationCoverage": 10000,
+      "interruptionCoverage": 10000,
+      "delayCoverage": 500,
+      "delayThresholdHours": 6,
+      "coveredReasons": [
+        "Sickness, injury, or death of you, a traveling companion, or immediate family member",
+        "Severe weather causing complete cessation of travel services",
+        "Strike causing complete cessation of travel services",
+        "Hijacking, quarantine, or natural disaster"
+      ],
+      "exclusions": [
+        "Pre-existing conditions (within 60-180 days before trip)",
+        "Mental or nervous disorders (unless hospitalized)",
+        "Normal pregnancy (after 35th week)",
+        "War or acts of war",
+        "Changes in plans or financial circumstances"
+      ]
+    },
+    "amex-standard": {
+      "id": "amex-trip-standard",
+      "name": "Amex Standard Trip Protection",
+      "tier": "standard",
+      "issuer": "American Express",
+      "cancellationCoverage": 5000,
+      "interruptionCoverage": 5000,
+      "delayCoverage": 300,
+      "delayThresholdHours": 6,
+      "coveredReasons": [
+        "Sickness, injury, or death of you or traveling companion",
+        "Severe weather that prevents travel",
+        "Strike causing cessation of services"
+      ],
+      "exclusions": [
+        "Pre-existing conditions",
+        "Changes in plans",
+        "Failure to provide required documentation"
+      ]
+    }
+  },
+  "baggageProtection": {
+    "chase-premium": {
+      "id": "chase-baggage-premium",
+      "name": "Chase Premium Baggage Protection",
+      "tier": "premium",
+      "issuer": "Chase",
+      "delayCoverage": 100,
+      "delayThresholdHours": 6,
+      "lostBaggageCoverage": 3000,
+      "coverageDetails": [
+        "Covers essential purchases if bags are delayed 6+ hours",
+        "Reimbursement for lost, damaged, or stolen checked baggage",
+        "Coverage for personal items in baggage"
+      ],
+      "exclusions": [
+        "Cash, currency, or travelers checks",
+        "Contact lenses, eyeglasses, or hearing aids",
+        "Documents, tickets, or securities",
+        "Perishable items"
+      ]
+    },
+    "chase-standard": {
+      "id": "chase-baggage-standard",
+      "name": "Chase Standard Baggage Protection",
+      "tier": "standard",
+      "issuer": "Chase",
+      "delayCoverage": 100,
+      "delayThresholdHours": 6,
+      "lostBaggageCoverage": 1500,
+      "coverageDetails": [
+        "Covers essential purchases if bags are delayed 6+ hours",
+        "Reimbursement for lost or damaged checked baggage"
+      ],
+      "exclusions": [
+        "Cash, currency, or travelers checks",
+        "Contact lenses or eyeglasses",
+        "Documents or securities"
+      ]
+    },
+    "amex-premium": {
+      "id": "amex-baggage-premium",
+      "name": "Amex Premium Baggage Protection",
+      "tier": "premium",
+      "issuer": "American Express",
+      "delayCoverage": 500,
+      "delayThresholdHours": 6,
+      "lostBaggageCoverage": 3000,
+      "coverageDetails": [
+        "Coverage for reasonable, necessary, and essential items",
+        "Checked and carry-on baggage included",
+        "Coverage for entire immediate family traveling with you"
+      ],
+      "exclusions": [
+        "Animals",
+        "Automobiles or automobile parts",
+        "Bicycles, boats, or motors",
+        "Cash, bullion, or currency",
+        "Contact or corneal lenses",
+        "Documents, securities, or tickets"
+      ]
+    },
+    "amex-standard": {
+      "id": "amex-baggage-standard",
+      "name": "Amex Standard Baggage Protection",
+      "tier": "standard",
+      "issuer": "American Express",
+      "delayCoverage": 300,
+      "delayThresholdHours": 6,
+      "lostBaggageCoverage": 1500,
+      "coverageDetails": [
+        "Coverage for reasonable, necessary, and essential items",
+        "Checked baggage included"
+      ],
+      "exclusions": [
+        "Animals",
+        "Cash or currency",
+        "Contact lenses",
+        "Documents or securities"
+      ]
+    }
+  },
+  "rentalExclusions": {
+    "chase": {
+      "id": "chase-rental-exclusions",
+      "name": "Chase Rental Car Exclusions",
+      "issuer": "Chase",
+      "whatsCovered": [
+        "Collision damage to the rental vehicle",
+        "Theft of the rental vehicle",
+        "Loss-of-use charges from the rental company",
+        "Reasonable towing charges to the nearest repair facility",
+        "Valid administrative/surcharges from the rental company"
+      ],
+      "whatsNotCovered": [
+        "Liability for injuries to any person",
+        "Liability for damage to other vehicles or property",
+        "Personal belongings inside the vehicle",
+        "Damage from off-road driving",
+        "Damage while driving under the influence",
+        "Damage from racing or speed contests",
+        "Wear and tear, gradual deterioration, or mechanical breakdown",
+        "Damage from acts of war or nuclear hazards",
+        "Loss of personal items or cash"
+      ],
+      "vehicleExclusions": [
+        "Antique vehicles (over 20 years old or not manufactured for 10+ years)",
+        "Motorcycles, mopeds, motorbikes",
+        "Trucks, pickups, or cargo vehicles",
+        "Vans designed to carry more than 8 passengers",
+        "Exotic or luxury vehicles (Ferrari, Lamborghini, Porsche, etc.)",
+        "Recreational vehicles, campers, or trailers",
+        "Off-road vehicles (ATVs, dune buggies, etc.)"
+      ],
+      "countryExclusions": ["Israel", "Jamaica", "Republic of Ireland", "Northern Ireland"],
+      "countryNotes": "Coverage applies in most countries but is excluded in these specific locations. Always verify with your card issuer before renting."
+    },
+    "amex": {
+      "id": "amex-rental-exclusions",
+      "name": "Amex Rental Car Exclusions",
+      "issuer": "American Express",
+      "whatsCovered": [
+        "Collision damage to the rental vehicle",
+        "Theft of the rental vehicle",
+        "Vandalism damage",
+        "Valid loss-of-use charges",
+        "Towing to the nearest qualified repair facility"
+      ],
+      "whatsNotCovered": [
+        "Liability for bodily injury or property damage to third parties",
+        "Personal effects or belongings in the vehicle",
+        "Expenses resulting from off-road operation",
+        "Damage while vehicle is operated by an unauthorized driver",
+        "Damage from driving while intoxicated",
+        "Damage from participating in any racing activity",
+        "Pre-existing damage to the rental vehicle",
+        "Administrative, diminution of value, or loss-of-use charges (may have limits)",
+        "Tire damage (unless caused by a covered accident)"
+      ],
+      "vehicleExclusions": [
+        "Antique automobiles",
+        "Motorcycles, mopeds, or motorbikes of any kind",
+        "Any truck, including pickup trucks",
+        "Full-size vans",
+        "Exotic or expensive vehicles",
+        "Limousines",
+        "Off-road vehicles",
+        "Vehicles with an MSRP over $100,000"
+      ],
+      "countryExclusions": [],
+      "countryNotes": "Coverage generally available worldwide where American Express is accepted, but always confirm with your card issuer."
+    }
+  },
+  "emergencyAssistance": {
+    "premium": {
+      "id": "emergency-premium",
+      "name": "Premium Emergency Assistance",
+      "tier": "premium",
+      "evacuationCoverage": 100000,
+      "medicalCoverage": 2500,
+      "services": [
+        "Emergency medical evacuation to nearest adequate facility",
+        "Medical repatriation to home country",
+        "Return of minor children if you're hospitalized",
+        "Emergency medical and dental referrals",
+        "Lost luggage assistance",
+        "Legal and bail bond referrals",
+        "Emergency message relay",
+        "Prescription assistance and eyeglass replacement"
+      ],
+      "coverageDetails": [
+        "Available 24/7 when traveling 100+ miles from home",
+        "Covers you and immediate family members",
+        "No pre-authorization required for emergencies",
+        "Coordinates with your travel insurance"
+      ],
+      "exclusions": [
+        "Pre-existing medical conditions (some limitations)",
+        "Travel against medical advice",
+        "Travel to countries under travel warnings",
+        "Elective or cosmetic procedures"
+      ]
+    },
+    "standard": {
+      "id": "emergency-standard",
+      "name": "Standard Emergency Assistance",
+      "tier": "standard",
+      "evacuationCoverage": 50000,
+      "services": [
+        "Emergency medical evacuation",
+        "Medical referrals worldwide",
+        "Emergency message relay",
+        "Lost luggage and document assistance"
+      ],
+      "coverageDetails": [
+        "Available when traveling 100+ miles from home",
+        "Hotline available 24/7"
+      ],
+      "exclusions": [
+        "Pre-existing conditions",
+        "Non-emergency situations"
+      ]
+    }
+  },
+  "travelPerks": {
+    "chase-sapphire-reserve": {
+      "id": "chase-sapphire-reserve-perks",
+      "name": "Chase Sapphire Reserve Travel Perks",
+      "tier": "premium",
+      "issuer": "Chase",
+      "loungeAccess": [
+        "Priority Pass Select (unlimited visits)",
+        "Chase Sapphire Lounges",
+        "Plaza Premium Lounges"
+      ],
+      "travelCredits": [
+        { "amount": 300, "description": "Annual travel credit (automatic reimbursement)" }
+      ],
+      "otherPerks": [
+        "Global Entry or TSA PreCheck fee credit ($100 every 4 years)",
+        "Primary rental car insurance",
+        "Trip delay reimbursement up to $500 per ticket",
+        "1:1 point transfer to airline and hotel partners",
+        "50% more value on travel through Chase Ultimate Rewards",
+        "Complimentary DoorDash DashPass",
+        "Lyft Pink membership"
+      ]
+    },
+    "amex-platinum": {
+      "id": "amex-platinum-perks",
+      "name": "Amex Platinum Travel Perks",
+      "tier": "premium",
+      "issuer": "American Express",
+      "loungeAccess": [
+        "Centurion Lounges",
+        "Delta Sky Clubs (when flying Delta)",
+        "Priority Pass Select",
+        "Plaza Premium Lounges",
+        "Escape Lounges",
+        "Airspace Lounges"
+      ],
+      "travelCredits": [
+        { "amount": 200, "description": "Airline fee credit (annual, select airline)" },
+        { "amount": 200, "description": "Hotel credit (FHR and THC bookings)" },
+        { "amount": 200, "description": "Uber credit ($15/month + $20 December)" }
+      ],
+      "otherPerks": [
+        "Global Entry or TSA PreCheck fee credit ($100 every 4 years)",
+        "Clear Plus credit ($189/year)",
+        "Fine Hotels + Resorts and The Hotel Collection benefits",
+        "Car rental elite status (Avis, Hertz, National)",
+        "Marriott Bonvoy Gold Elite status",
+        "Hilton Honors Gold status",
+        "$240 Digital Entertainment Credit ($20/month)",
+        "Walmart+ membership ($12.95/month value)",
+        "Equinox credit ($25/month)",
+        "SAKS credit ($50 semi-annually)"
+      ]
+    },
+    "amex-gold": {
+      "id": "amex-gold-perks",
+      "name": "Amex Gold Travel Perks",
+      "tier": "mid-tier",
+      "issuer": "American Express",
+      "loungeAccess": [],
+      "travelCredits": [
+        { "amount": 120, "description": "Uber credit ($10/month)" },
+        { "amount": 120, "description": "Dining credit ($10/month at select restaurants)" }
+      ],
+      "otherPerks": [
+        "4X points at restaurants worldwide",
+        "4X points at US supermarkets (up to $25,000/year)",
+        "3X points on flights booked directly with airlines",
+        "Baggage insurance plan",
+        "Trip cancellation/interruption insurance"
+      ]
+    },
+    "amex-delta-reserve": {
+      "id": "amex-delta-reserve-perks",
+      "name": "Delta Reserve Travel Perks",
+      "tier": "premium",
+      "issuer": "American Express",
+      "loungeAccess": [
+        "Delta Sky Clubs (unlimited access)",
+        "Centurion Lounges (when flying Delta same day)"
+      ],
+      "travelCredits": [
+        { "amount": 0, "description": "Companion Certificate (First Class or higher)" }
+      ],
+      "otherPerks": [
+        "Delta Sky Club Executive Membership",
+        "Global Entry or TSA PreCheck fee credit",
+        "First checked bag free on Delta flights",
+        "Priority boarding on Delta flights",
+        "20% back on Delta in-flight purchases",
+        "Status Boost (earn MQMs faster)",
+        "Same-day confirmed flight changes"
+      ]
+    }
+  }
+}

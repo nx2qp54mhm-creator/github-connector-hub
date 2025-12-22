@@ -1,0 +1,106 @@
+{
+  "provider": "Wireless Carriers",
+  "sourceType": "protection-plan",
+  "metadata": {
+    "lastUpdated": "2025-01-15",
+    "version": "1.0.0",
+    "notes": "Mobile device protection plans from major wireless carriers"
+  },
+  "plans": [
+    {
+      "id": "carrier_device_protection",
+      "name": "Carrier Insurance",
+      "fullName": "Carrier Device Protection Plan",
+      "planType": "subscription",
+      "cost": {
+        "type": "monthly",
+        "amount": 15,
+        "note": "$10-$20/month depending on carrier and device tier"
+      },
+      "categories": ["purchase-protection", "phone-protection"],
+      "eligibleProducts": [
+        "Smartphones",
+        "Tablets",
+        "Smartwatches"
+      ],
+      "purchaseRequirements": [
+        "Device must be on active wireless account",
+        "Must enroll within 30 days of device purchase or upgrade",
+        "Some carriers allow open enrollment periods"
+      ],
+      "benefits": {
+        "phone-protection": {
+          "coverageLevel": "full",
+          "limits": {
+            "claimsPerYear": "2-3 depending on carrier",
+            "deductible": "$29-$275 depending on device and damage type"
+          },
+          "covered": [
+            "Coverage for accidental damage (cracked screens, liquid damage)",
+            "Theft and loss protection",
+            "Mechanical or electrical breakdown after warranty",
+            "Same-day or next-day device replacement (in many areas)",
+            "Unlimited screen repair claims (on some plans)",
+            "Battery replacement"
+          ],
+          "notCovered": [
+            "Cosmetic damage that doesn't affect function",
+            "Devices not on your wireless account",
+            "Damage from unauthorized repair attempts",
+            "Intentional damage",
+            "Devices over certain age limits (typically 3+ years)",
+            "Claims without required documentation",
+            "Accessories (unless specifically covered)"
+          ],
+          "conditions": [
+            "Must report loss/theft within 60 days",
+            "Replacement devices may be refurbished",
+            "Deductible varies by device tier and damage type",
+            "Some carriers require trade-in of damaged device"
+          ]
+        }
+      }
+    },
+    {
+      "id": "carrier_premium_protection",
+      "name": "Premium Device Protection",
+      "fullName": "Premium Device Protection Plus",
+      "planType": "subscription",
+      "cost": {
+        "type": "monthly",
+        "amount": 25,
+        "note": "$18-$35/month for premium tier coverage"
+      },
+      "categories": ["purchase-protection", "phone-protection", "purchase-warranty"],
+      "eligibleProducts": [
+        "Premium smartphones",
+        "Tablets",
+        "Smartwatches",
+        "Connected devices"
+      ],
+      "benefits": {
+        "phone-protection": {
+          "coverageLevel": "full",
+          "limits": {
+            "claimsPerYear": "Unlimited screen repairs + 3 full claims",
+            "deductible": "$0-$99 for screen, $149-$275 for full replacement"
+          },
+          "covered": [
+            "All standard protection coverage",
+            "Unlimited screen repairs with $0-$29 deductible",
+            "Same-day screen repair (at participating locations)",
+            "Expert tech support",
+            "Security features (lost device locate, remote wipe)",
+            "Multi-device coverage options",
+            "Accessory coverage"
+          ],
+          "notCovered": [
+            "Pre-existing damage",
+            "Devices not enrolled in plan",
+            "Intentional damage or misuse"
+          ]
+        }
+      }
+    }
+  ]
+}
