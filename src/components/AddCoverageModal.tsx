@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useRateLimiter } from "@/hooks/useRateLimiter";
+import { CategoryId } from "@/types/coverage";
 
 // Rate limit: 5 document uploads per 5 minutes
 const UPLOAD_RATE_LIMIT_MAX = 5;
@@ -53,7 +54,7 @@ export function AddCoverageModal({
   } = useCoverageStore();
   const { refetch: refetchAutoPolicy } = useAutoPolicy();
 
-  const resetUploadState = (fileName?: string) => {
+  const resetUploadState = (fileName?: string): void => {
     setIsUploading(false);
     setIsProcessing(false);
     if (fileName) {
@@ -67,7 +68,7 @@ export function AddCoverageModal({
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -214,7 +215,7 @@ export function AddCoverageModal({
         name: file.name.replace(/\.[^/.]+$/, ""),
         type: policyType as "auto" | "home" | "renters" | "other",
         filename: file.name,
-        categories: categoryMap[policyType] as any[],
+        categories: categoryMap[policyType] as CategoryId[],
       });
 
       // Refetch auto policy to update the Auto Insurance card
@@ -229,7 +230,7 @@ export function AddCoverageModal({
 
       resetUploadState(file.name);
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Upload error:", error);
       toast({
         title: "Upload failed",
@@ -240,7 +241,7 @@ export function AddCoverageModal({
     }
   };
 
-  const handleAddPlan = (planId: string) => {
+  const handleAddPlan = (planId: string): void => {
     addPlan(planId);
     onOpenChange(false);
   };

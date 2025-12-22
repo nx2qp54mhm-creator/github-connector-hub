@@ -9,7 +9,7 @@ interface RentalCardComparisonProps {
 }
 
 // Hook to synchronize heights of elements with matching data-sync-id attributes
-function useSyncHeights(containerRef: React.RefObject<HTMLDivElement>, deps: any[]) {
+function useSyncHeights(containerRef: React.RefObject<HTMLDivElement>, deps: React.DependencyList): void {
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -69,7 +69,7 @@ export function RentalCardComparison({ cards, categoryTitle, categorySubtitle }:
   }
 
   // Determine grid columns based on card count
-  const getGridClass = () => {
+  const getGridClass = (): string => {
     switch (displayCards.length) {
       case 1:
         return "grid-cols-1 max-w-xl mx-auto";

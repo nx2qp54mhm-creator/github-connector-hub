@@ -25,7 +25,7 @@ export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleForgotPassword = async () => {
+  const handleForgotPassword = async (): Promise<void> => {
     if (!email.trim()) {
       toast({
         title: "Email required",
@@ -87,7 +87,7 @@ export default function Auth() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const validateInput = () => {
+  const validateInput = (): boolean => {
     const result = authSchema.safeParse({ email, password });
     if (!result.success) {
       toast({
@@ -100,7 +100,7 @@ export default function Auth() {
     return true;
   };
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!validateInput()) return;
 
@@ -120,7 +120,7 @@ export default function Auth() {
     setLoading(false);
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!validateInput()) return;
 

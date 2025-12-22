@@ -22,7 +22,8 @@ function formatDateRange(startDate: string | null, endDate: string | null): stri
     const start = format(parseISO(startDate), "MMM d, yyyy");
     const end = format(parseISO(endDate), "MMM d, yyyy");
     return `${start} - ${end}`;
-  } catch {
+  } catch (err: unknown) {
+    console.error("Date formatting error:", err);
     return null;
   }
 }
@@ -59,7 +60,7 @@ interface CoverageRowProps {
   indented?: boolean;
 }
 
-function CoverageRow({ label, value, covered, indented }: CoverageRowProps) {
+function CoverageRow({ label, value, covered, indented }: CoverageRowProps): React.ReactElement {
   return (
     <div className="py-2 border-b border-border last:border-b-0">
       <div className={cn("flex items-center justify-between", indented && "pl-4")}>
@@ -80,7 +81,11 @@ function CoverageRow({ label, value, covered, indented }: CoverageRowProps) {
   );
 }
 
-function SectionHeader({ label }: { label: string }) {
+interface SectionHeaderProps {
+  label: string;
+}
+
+function SectionHeader({ label }: SectionHeaderProps): React.ReactElement {
   return (
     <div className="pt-3 pb-2 border-b border-border">
       <span className="text-sm font-semibold text-foreground">{label}</span>

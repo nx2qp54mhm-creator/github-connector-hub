@@ -31,7 +31,11 @@ interface CategoryDetailSheetProps {
   onAddCoverage: () => void;
 }
 
-function CardExclusionsSection({ card }: { card: CreditCard }) {
+interface CardExclusionsSectionProps {
+  card: CreditCard;
+}
+
+function CardExclusionsSection({ card }: CardExclusionsSectionProps): React.ReactElement {
   const exclusions = card.rentalExclusions;
 
   if (!exclusions) {
@@ -136,7 +140,7 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
   // Filter cards with rental exclusions for the Exclusions tab
   const cardsWithExclusions = cards.filter(card => card && card.rentalExclusions);
 
-  const OverviewContent = () => (
+  const OverviewContent = (): React.ReactElement => (
     <div className="space-y-6">
       {/* Coverage Sources (for non-auto or when no auto policy) */}
       {!hasAutoPolicy && sourceCount > 0 && (
@@ -416,7 +420,7 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
                   onOpenChange(false);
 
                   toast.success("Policy deleted");
-                } catch (error) {
+                } catch (error: unknown) {
                   console.error("Error deleting policy:", error);
                   toast.error(error instanceof Error ? error.message : "Failed to delete policy");
                 } finally {
