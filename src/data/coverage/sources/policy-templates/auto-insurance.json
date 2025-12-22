@@ -1,0 +1,218 @@
+{
+  "policyType": "auto",
+  "sourceType": "policy",
+  "metadata": {
+    "lastUpdated": "2025-01-15",
+    "version": "1.0.0",
+    "notes": "Template for parsing and mapping auto insurance policy data"
+  },
+  "categories": ["foundational-auto", "travel-rental", "roadside-assistance"],
+  "displayName": "Auto Insurance Policy",
+  "description": "Personal auto insurance coverage including liability, collision, and comprehensive",
+  "extractionSchema": {
+    "required": [
+      "liability",
+      "collision",
+      "comprehensive"
+    ],
+    "optional": [
+      "rentalReimbursement",
+      "roadsideAssistance",
+      "uninsuredMotorist",
+      "underinsuredMotorist",
+      "medicalPayments",
+      "personalInjuryProtection"
+    ],
+    "identifiers": [
+      "policyNumber",
+      "carrier",
+      "effectiveDate",
+      "expirationDate",
+      "namedInsured",
+      "vehicles",
+      "drivers"
+    ]
+  },
+  "fieldDefinitions": {
+    "liability": {
+      "displayName": "Liability Coverage",
+      "description": "Covers bodily injury and property damage you cause to others",
+      "subFields": {
+        "bodilyInjuryPerPerson": {
+          "type": "currency",
+          "description": "Maximum per person for bodily injury"
+        },
+        "bodilyInjuryPerAccident": {
+          "type": "currency",
+          "description": "Maximum per accident for bodily injury"
+        },
+        "propertyDamage": {
+          "type": "currency",
+          "description": "Maximum for property damage"
+        }
+      },
+      "commonFormats": ["100/300/100", "$100,000/$300,000/$100,000"]
+    },
+    "collision": {
+      "displayName": "Collision Coverage",
+      "description": "Covers damage to your vehicle from collisions",
+      "subFields": {
+        "deductible": {
+          "type": "currency",
+          "description": "Amount you pay before coverage kicks in"
+        },
+        "coverage": {
+          "type": "string",
+          "description": "Actual Cash Value or Stated Amount"
+        }
+      }
+    },
+    "comprehensive": {
+      "displayName": "Comprehensive Coverage",
+      "description": "Covers non-collision damage (theft, weather, vandalism)",
+      "subFields": {
+        "deductible": {
+          "type": "currency",
+          "description": "Amount you pay before coverage kicks in"
+        },
+        "coverage": {
+          "type": "string",
+          "description": "Actual Cash Value or Stated Amount"
+        }
+      }
+    },
+    "rentalReimbursement": {
+      "displayName": "Rental Reimbursement",
+      "description": "Covers rental car costs while your vehicle is being repaired",
+      "subFields": {
+        "dailyLimit": {
+          "type": "currency",
+          "description": "Maximum daily reimbursement"
+        },
+        "maxDays": {
+          "type": "number",
+          "description": "Maximum number of days covered"
+        },
+        "totalLimit": {
+          "type": "currency",
+          "description": "Maximum total reimbursement"
+        }
+      }
+    },
+    "roadsideAssistance": {
+      "displayName": "Roadside Assistance",
+      "description": "Emergency roadside services",
+      "subFields": {
+        "towingLimit": {
+          "type": "currency",
+          "description": "Maximum towing reimbursement"
+        },
+        "laborLimit": {
+          "type": "currency",
+          "description": "Maximum labor reimbursement"
+        }
+      }
+    },
+    "uninsuredMotorist": {
+      "displayName": "Uninsured Motorist Coverage",
+      "description": "Covers you if hit by uninsured driver",
+      "subFields": {
+        "bodilyInjuryPerPerson": {
+          "type": "currency"
+        },
+        "bodilyInjuryPerAccident": {
+          "type": "currency"
+        },
+        "propertyDamage": {
+          "type": "currency"
+        }
+      }
+    },
+    "medicalPayments": {
+      "displayName": "Medical Payments (MedPay)",
+      "description": "Covers medical expenses for you and passengers regardless of fault",
+      "subFields": {
+        "perPerson": {
+          "type": "currency"
+        }
+      }
+    },
+    "personalInjuryProtection": {
+      "displayName": "Personal Injury Protection (PIP)",
+      "description": "No-fault coverage for medical expenses and lost wages",
+      "subFields": {
+        "limit": {
+          "type": "currency"
+        },
+        "deductible": {
+          "type": "currency"
+        }
+      }
+    }
+  },
+  "benefitMapping": {
+    "foundational-auto": {
+      "fields": ["liability", "collision", "comprehensive", "uninsuredMotorist", "medicalPayments"],
+      "coverageLevel": "full",
+      "defaultCovered": [
+        "Liability coverage for accidents you cause",
+        "Collision coverage for your vehicle",
+        "Comprehensive coverage (theft, weather, vandalism)",
+        "Medical payments for injuries"
+      ],
+      "defaultNotCovered": [
+        "Intentional damage",
+        "Normal wear and tear",
+        "Mechanical breakdown",
+        "Personal belongings in vehicle (may require separate coverage)"
+      ]
+    },
+    "travel-rental": {
+      "fields": ["rentalReimbursement"],
+      "condition": "hasRentalReimbursement",
+      "coverageLevel": "partial",
+      "defaultCovered": [
+        "Rental car costs while your vehicle is being repaired after covered claim",
+        "Daily limit typically $30-$50/day",
+        "Maximum coverage period typically 30 days"
+      ],
+      "defaultNotCovered": [
+        "Rental for non-covered claims",
+        "Rental during routine maintenance",
+        "Upgrades beyond policy limits"
+      ]
+    },
+    "roadside-assistance": {
+      "fields": ["roadsideAssistance"],
+      "condition": "hasRoadsideAssistance",
+      "coverageLevel": "partial",
+      "defaultCovered": [
+        "Towing to nearest repair facility",
+        "Flat tire service",
+        "Battery jump start",
+        "Lockout service",
+        "Fuel delivery"
+      ],
+      "defaultNotCovered": [
+        "Repair costs",
+        "Towing beyond covered distance",
+        "Service for commercial vehicles (varies by policy)"
+      ]
+    }
+  },
+  "defaultBenefits": {
+    "foundational-auto": {
+      "coverageLevel": "full",
+      "covered": [
+        "Liability coverage for bodily injury and property damage",
+        "Collision coverage for your vehicle",
+        "Comprehensive coverage for non-collision damage"
+      ],
+      "notCovered": [
+        "Intentional acts",
+        "Racing or speed contests",
+        "Using vehicle for commercial purposes (unless declared)"
+      ]
+    }
+  }
+}

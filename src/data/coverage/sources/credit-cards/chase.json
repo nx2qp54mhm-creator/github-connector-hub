@@ -1,0 +1,137 @@
+{
+  "provider": "Chase",
+  "sourceType": "credit-card",
+  "metadata": {
+    "lastUpdated": "2025-01-15",
+    "version": "1.0.0",
+    "sourceUrl": "https://www.chase.com/personal/credit-cards",
+    "notes": "Chase credit card benefits and coverage data"
+  },
+  "cards": [
+    {
+      "id": "chase_sapphire_reserve",
+      "name": "Sapphire Reserve",
+      "fullName": "Chase Sapphire Reserve",
+      "network": "Visa",
+      "annualFee": 550,
+      "tier": "premium",
+      "categories": [
+        "travel-rental",
+        "travel-trip",
+        "travel-baggage",
+        "travel-perks",
+        "travel-emergency",
+        "roadside-assistance",
+        "purchase-protection"
+      ],
+      "benefits": {
+        "rental": {
+          "coverageType": "primary",
+          "maxCoverage": 75000,
+          "maxDays": 31,
+          "exclusionsTemplate": "chase"
+        },
+        "tripProtection": "chase-premium",
+        "baggageProtection": "chase-premium",
+        "purchaseProtection": "chase-premium",
+        "travelPerks": "chase-sapphire-reserve",
+        "emergencyAssistance": "premium",
+        "roadsideAssistance": "chase-premium"
+      }
+    },
+    {
+      "id": "chase_sapphire_preferred",
+      "name": "Sapphire Preferred",
+      "fullName": "Chase Sapphire Preferred",
+      "network": "Visa",
+      "annualFee": 95,
+      "tier": "mid-tier",
+      "categories": [
+        "travel-rental",
+        "travel-trip",
+        "travel-baggage",
+        "travel-emergency",
+        "roadside-assistance",
+        "purchase-protection"
+      ],
+      "benefits": {
+        "rental": {
+          "coverageType": "primary",
+          "maxCoverage": 75000,
+          "maxDays": 31,
+          "exclusionsTemplate": "chase"
+        },
+        "tripProtection": "chase-standard",
+        "baggageProtection": "chase-standard",
+        "purchaseProtection": "chase-standard",
+        "emergencyAssistance": "standard",
+        "roadsideAssistance": "chase-standard"
+      }
+    },
+    {
+      "id": "chase_freedom_unlimited",
+      "name": "Freedom Unlimited",
+      "fullName": "Chase Freedom Unlimited",
+      "network": "Visa",
+      "annualFee": 0,
+      "tier": "basic",
+      "categories": ["travel-rental", "purchase-protection", "purchase-warranty"],
+      "benefits": {
+        "rental": {
+          "coverageType": "secondary",
+          "maxCoverage": 50000,
+          "maxDays": 15,
+          "exclusionsTemplate": "chase"
+        },
+        "purchaseProtection": "chase-standard",
+        "extendedWarranty": "chase"
+      }
+    },
+    {
+      "id": "chase_freedom_flex",
+      "name": "Freedom Flex",
+      "fullName": "Chase Freedom Flex",
+      "network": "Mastercard",
+      "annualFee": 0,
+      "tier": "basic",
+      "categories": ["travel-rental", "purchase-protection", "purchase-warranty"],
+      "benefits": {
+        "rental": {
+          "coverageType": "secondary",
+          "maxCoverage": 50000,
+          "maxDays": 15,
+          "exclusionsTemplate": "chase"
+        },
+        "purchaseProtection": "chase-standard",
+        "extendedWarranty": "chase"
+      }
+    },
+    {
+      "id": "chase_ink_preferred",
+      "name": "Ink Business Preferred",
+      "fullName": "Chase Ink Business Preferred",
+      "network": "Visa",
+      "annualFee": 95,
+      "tier": "mid-tier",
+      "categories": [
+        "travel-rental",
+        "travel-trip",
+        "phone-protection",
+        "roadside-assistance",
+        "purchase-protection"
+      ],
+      "benefits": {
+        "rental": {
+          "coverageType": "primary",
+          "maxCoverage": 75000,
+          "maxDays": 31,
+          "exclusionsTemplate": "chase"
+        },
+        "tripProtection": "chase-standard",
+        "purchaseProtection": "chase-premium",
+        "cellPhoneProtection": "chase-ink",
+        "roadsideAssistance": "chase-standard"
+      }
+    }
+  ]
+}

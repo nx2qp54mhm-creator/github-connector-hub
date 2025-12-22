@@ -1,0 +1,186 @@
+{
+  "provider": "American Express",
+  "sourceType": "credit-card",
+  "metadata": {
+    "lastUpdated": "2025-01-15",
+    "version": "1.0.0",
+    "sourceUrl": "https://www.americanexpress.com/us/credit-cards/",
+    "notes": "American Express credit card benefits and coverage data"
+  },
+  "cards": [
+    {
+      "id": "amex_platinum",
+      "name": "Platinum Card",
+      "fullName": "American Express Platinum Card",
+      "network": "American Express",
+      "annualFee": 695,
+      "tier": "premium",
+      "categories": [
+        "travel-rental",
+        "travel-trip",
+        "travel-baggage",
+        "travel-perks",
+        "travel-emergency",
+        "roadside-assistance",
+        "purchase-protection",
+        "purchase-return"
+      ],
+      "benefits": {
+        "rental": {
+          "coverageType": "secondary",
+          "maxCoverage": 75000,
+          "maxDays": 30,
+          "exclusionsTemplate": "amex"
+        },
+        "tripProtection": "amex-premium",
+        "baggageProtection": "amex-premium",
+        "purchaseProtection": "amex-premium",
+        "travelPerks": "amex-platinum",
+        "emergencyAssistance": "premium",
+        "roadsideAssistance": "amex-premium",
+        "returnProtection": "amex"
+      }
+    },
+    {
+      "id": "amex_gold",
+      "name": "Gold Card",
+      "fullName": "American Express Gold Card",
+      "network": "American Express",
+      "annualFee": 250,
+      "tier": "mid-tier",
+      "categories": [
+        "travel-rental",
+        "travel-trip",
+        "travel-baggage",
+        "travel-perks",
+        "travel-emergency",
+        "purchase-protection",
+        "purchase-return"
+      ],
+      "benefits": {
+        "rental": {
+          "coverageType": "secondary",
+          "maxCoverage": 50000,
+          "maxDays": 30,
+          "exclusionsTemplate": "amex"
+        },
+        "tripProtection": "amex-standard",
+        "baggageProtection": "amex-standard",
+        "purchaseProtection": "amex-standard",
+        "travelPerks": "amex-gold",
+        "emergencyAssistance": "standard",
+        "returnProtection": "amex"
+      }
+    },
+    {
+      "id": "amex_green",
+      "name": "Green Card",
+      "fullName": "American Express Green Card",
+      "network": "American Express",
+      "annualFee": 150,
+      "tier": "mid-tier",
+      "categories": [
+        "travel-rental",
+        "travel-trip",
+        "travel-baggage",
+        "travel-emergency"
+      ],
+      "benefits": {
+        "rental": {
+          "coverageType": "secondary",
+          "maxCoverage": 50000,
+          "maxDays": 30,
+          "exclusionsTemplate": "amex"
+        },
+        "tripProtection": "amex-standard",
+        "baggageProtection": "amex-standard",
+        "emergencyAssistance": "standard"
+      }
+    },
+    {
+      "id": "amex_business_platinum",
+      "name": "Business Platinum",
+      "fullName": "American Express Business Platinum",
+      "network": "American Express",
+      "annualFee": 695,
+      "tier": "premium",
+      "categories": [
+        "travel-rental",
+        "travel-trip",
+        "travel-perks",
+        "travel-emergency",
+        "roadside-assistance",
+        "purchase-protection",
+        "purchase-return"
+      ],
+      "benefits": {
+        "rental": {
+          "coverageType": "secondary",
+          "maxCoverage": 75000,
+          "maxDays": 42,
+          "exclusionsTemplate": "amex"
+        },
+        "tripProtection": "amex-premium",
+        "purchaseProtection": "amex-premium",
+        "travelPerks": "amex-platinum",
+        "emergencyAssistance": "premium",
+        "roadsideAssistance": "amex-premium",
+        "returnProtection": "amex"
+      }
+    },
+    {
+      "id": "amex_delta_reserve",
+      "name": "Delta Reserve",
+      "fullName": "Delta SkyMiles Reserve",
+      "network": "American Express",
+      "annualFee": 650,
+      "tier": "premium",
+      "categories": [
+        "travel-rental",
+        "travel-trip",
+        "travel-baggage",
+        "travel-perks",
+        "travel-emergency",
+        "roadside-assistance"
+      ],
+      "benefits": {
+        "rental": {
+          "coverageType": "secondary",
+          "maxCoverage": 75000,
+          "maxDays": 30,
+          "exclusionsTemplate": "amex"
+        },
+        "tripProtection": "amex-premium",
+        "baggageProtection": "amex-premium",
+        "travelPerks": "amex-delta-reserve",
+        "emergencyAssistance": "premium",
+        "roadsideAssistance": "amex-premium"
+      }
+    },
+    {
+      "id": "amex_delta_gold",
+      "name": "Delta Gold",
+      "fullName": "Delta SkyMiles Gold",
+      "network": "American Express",
+      "annualFee": 150,
+      "tier": "mid-tier",
+      "categories": [
+        "travel-rental",
+        "travel-trip",
+        "travel-baggage",
+        "travel-emergency"
+      ],
+      "benefits": {
+        "rental": {
+          "coverageType": "secondary",
+          "maxCoverage": 50000,
+          "maxDays": 30,
+          "exclusionsTemplate": "amex"
+        },
+        "tripProtection": "amex-standard",
+        "baggageProtection": "amex-standard",
+        "emergencyAssistance": "standard"
+      }
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "templateType": "purchase",
+  "metadata": {
+    "lastUpdated": "2025-01-15",
+    "version": "1.0.0",
+    "notes": "Purchase benefit templates including purchase protection, extended warranty, and return protection"
+  },
+  "purchaseProtection": {
+    "chase-premium": {
+      "id": "chase-purchase-premium",
+      "name": "Chase Premium Purchase Protection",
+      "tier": "premium",
+      "issuer": "Chase",
+      "maxPerClaim": 10000,
+      "maxPerYear": 50000,
+      "coveragePeriodDays": 120,
+      "covered": [
+        "Theft of eligible items purchased with your card",
+        "Damage to eligible items purchased with your card",
+        "Items given as gifts"
+      ],
+      "notCovered": [
+        "Motorized vehicles, aircraft, or watercraft",
+        "Cash, travelers checks, or tickets",
+        "Items left unattended in vehicles",
+        "Used or pre-owned items",
+        "Real estate or services"
+      ]
+    },
+    "chase-standard": {
+      "id": "chase-purchase-standard",
+      "name": "Chase Standard Purchase Protection",
+      "tier": "standard",
+      "issuer": "Chase",
+      "maxPerClaim": 500,
+      "maxPerYear": 50000,
+      "coveragePeriodDays": 120,
+      "covered": [
+        "Theft of eligible items purchased with your card",
+        "Damage to eligible items purchased with your card"
+      ],
+      "notCovered": [
+        "Motorized vehicles",
+        "Cash or travelers checks",
+        "Items left unattended",
+        "Used or pre-owned items"
+      ]
+    },
+    "amex-premium": {
+      "id": "amex-purchase-premium",
+      "name": "Amex Premium Purchase Protection",
+      "tier": "premium",
+      "issuer": "American Express",
+      "maxPerClaim": 10000,
+      "maxPerYear": 50000,
+      "coveragePeriodDays": 120,
+      "covered": [
+        "Accidental damage to eligible items",
+        "Theft of eligible items",
+        "Items purchased as gifts for others"
+      ],
+      "notCovered": [
+        "Automobiles, motorboats, aircraft, or other motorized vehicles",
+        "Cash, travelers checks, or tickets",
+        "Items purchased for resale",
+        "Consumables (perfume, cosmetics)",
+        "Live plants or animals",
+        "Items damaged through normal wear and tear"
+      ]
+    },
+    "amex-standard": {
+      "id": "amex-purchase-standard",
+      "name": "Amex Standard Purchase Protection",
+      "tier": "standard",
+      "issuer": "American Express",
+      "maxPerClaim": 1000,
+      "maxPerYear": 50000,
+      "coveragePeriodDays": 90,
+      "covered": [
+        "Accidental damage to eligible items",
+        "Theft of eligible items"
+      ],
+      "notCovered": [
+        "Motorized vehicles",
+        "Cash or travelers checks",
+        "Items purchased for resale",
+        "Consumables"
+      ]
+    }
+  },
+  "extendedWarranty": {
+    "chase": {
+      "id": "chase-extended-warranty",
+      "name": "Chase Extended Warranty",
+      "tier": "standard",
+      "issuer": "Chase",
+      "extensionYears": 1,
+      "maxOriginalWarrantyYears": 3,
+      "maxPerClaim": 10000,
+      "coverageDetails": [
+        "Extends US manufacturer warranty by one additional year",
+        "Covers mechanical and electrical failures",
+        "Original warranty must be 3 years or less"
+      ],
+      "exclusions": [
+        "Commercial or business use items",
+        "Motorized vehicles",
+        "Items without a valid US warranty",
+        "Computer software",
+        "Consumable items"
+      ]
+    },
+    "amex": {
+      "id": "amex-extended-warranty",
+      "name": "Amex Extended Warranty",
+      "tier": "premium",
+      "issuer": "American Express",
+      "extensionYears": 2,
+      "maxOriginalWarrantyYears": 5,
+      "maxPerClaim": 10000,
+      "coverageDetails": [
+        "Extends US manufacturer warranty by up to 2 additional years",
+        "Covers items with original warranty of 5 years or less",
+        "Coverage up to the original purchase price"
+      ],
+      "exclusions": [
+        "Motorized vehicles",
+        "Items used for professional or commercial purposes",
+        "Computer software",
+        "Medical equipment",
+        "Items without a valid US warranty"
+      ]
+    }
+  },
+  "returnProtection": {
+    "amex": {
+      "id": "amex-return-protection",
+      "name": "Amex Return Protection",
+      "tier": "standard",
+      "issuer": "American Express",
+      "maxPerItem": 300,
+      "maxPerYear": 1000,
+      "returnWindowDays": 90,
+      "coverageDetails": [
+        "Return eligible items within 90 days of purchase",
+        "Items must be in original condition",
+        "Amex will refund if merchant won't accept return"
+      ],
+      "exclusions": [
+        "Jewelry, watches, and furs",
+        "Items purchased for resale",
+        "Perishable items",
+        "Items with limited return policies disclosed at purchase",
+        "Motorized vehicles",
+        "Computer software"
+      ]
+    }
+  }
+}

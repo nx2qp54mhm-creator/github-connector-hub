@@ -1,0 +1,112 @@
+{
+  "provider": "Apple",
+  "sourceType": "protection-plan",
+  "metadata": {
+    "lastUpdated": "2025-01-15",
+    "version": "1.0.0",
+    "sourceUrl": "https://www.apple.com/shop/product/applecare",
+    "notes": "AppleCare+ protection plans for Apple devices"
+  },
+  "plans": [
+    {
+      "id": "applecare_plus",
+      "name": "AppleCare+",
+      "fullName": "AppleCare+ Protection Plan",
+      "planType": "device",
+      "cost": {
+        "type": "variable",
+        "note": "Varies by device ($79-$269 for 2 years, or monthly options available)"
+      },
+      "categories": ["purchase-warranty"],
+      "eligibleProducts": [
+        "iPhone",
+        "iPad",
+        "Mac",
+        "Apple Watch",
+        "AirPods",
+        "Apple TV",
+        "HomePod",
+        "Apple Display"
+      ],
+      "purchaseRequirements": [
+        "Must be purchased within 60 days of device purchase",
+        "Device must pass diagnostic test if purchased after initial sale"
+      ],
+      "benefits": {
+        "purchase-warranty": {
+          "coverageLevel": "full",
+          "limits": {
+            "duration": "2-3 years from original purchase",
+            "accidentalDamageIncidents": 2,
+            "accidentalDamagePeriod": "per year"
+          },
+          "covered": [
+            "Extends hardware coverage to 2 or 3 years from original purchase",
+            "Accidental damage protection (up to 2 incidents per year)",
+            "Battery service coverage if capacity drops below 80%",
+            "24/7 priority access to Apple experts",
+            "Express replacement service",
+            "Coverage for Apple accessories (AirPods, Apple Pencil, etc.)",
+            "Same-day service at Apple Store (where available)"
+          ],
+          "notCovered": [
+            "Cosmetic damage (scratches, dents, broken plastic on ports)",
+            "Damage caused by unauthorized modifications",
+            "Theft or loss (unless AppleCare+ with Theft and Loss)",
+            "Damage caused by operating outside permitted conditions",
+            "Consumable parts unless defective",
+            "Damage from third-party components"
+          ],
+          "conditions": [
+            "Service fees apply for accidental damage ($29-$99 depending on damage type)",
+            "Must use genuine Apple parts for repairs",
+            "Coverage transfers with device ownership"
+          ]
+        }
+      }
+    },
+    {
+      "id": "applecare_plus_theft_loss",
+      "name": "AppleCare+ with Theft and Loss",
+      "fullName": "AppleCare+ with Theft and Loss Protection",
+      "planType": "device",
+      "cost": {
+        "type": "variable",
+        "note": "Additional $3-$5/month over standard AppleCare+"
+      },
+      "categories": ["purchase-warranty", "purchase-protection"],
+      "eligibleProducts": ["iPhone"],
+      "purchaseRequirements": [
+        "Must be purchased within 60 days of device purchase",
+        "Find My must be enabled at time of loss/theft"
+      ],
+      "benefits": {
+        "purchase-warranty": {
+          "coverageLevel": "full",
+          "limits": {
+            "duration": "2 years from original purchase",
+            "accidentalDamageIncidents": 2,
+            "theftLossIncidents": 2,
+            "incidentPeriod": "per year"
+          },
+          "covered": [
+            "All standard AppleCare+ coverage",
+            "Theft protection",
+            "Loss protection",
+            "Replacement device provided"
+          ],
+          "notCovered": [
+            "More than 2 theft/loss incidents per year",
+            "Devices without Find My enabled",
+            "Intentional damage or loss"
+          ],
+          "conditions": [
+            "Deductible of $149 for theft or loss claims",
+            "Find My iPhone must be enabled",
+            "Must file police report for theft claims"
+          ]
+        }
+      }
+    }
+  ]
+}
