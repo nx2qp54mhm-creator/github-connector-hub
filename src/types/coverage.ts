@@ -3,13 +3,22 @@ export type CategoryId =
   | "travel-trip"
   | "travel-baggage"
   | "travel-perks"
+  | "travel-emergency"
   | "purchase-protection"
   | "purchase-warranty"
+  | "purchase-return"
+  | "purchase-price"
+  | "phone-protection"
+  | "roadside-assistance"
   | "foundational-auto"
   | "foundational-home";
 
 export type CardIssuer = "Chase" | "American Express";
 export type CardNetwork = "Visa" | "Mastercard" | "American Express";
+
+// ============================================
+// CREDIT CARD BENEFIT INTERFACES
+// ============================================
 
 export interface RentalExclusions {
   what_is_covered?: string[];
@@ -58,6 +67,126 @@ export interface TravelPerks {
   other_perks?: string[];
 }
 
+// New benefit types
+export interface CellPhoneProtection {
+  max_per_claim?: number;
+  max_claims_per_year?: number;
+  deductible?: number;
+  coverage_details?: string[];
+  requirements?: string[];
+  exclusions?: string[];
+}
+
+export interface ReturnProtection {
+  max_per_item?: number;
+  max_per_year?: number;
+  return_window_days?: number;
+  coverage_details?: string[];
+  exclusions?: string[];
+}
+
+export interface PriceProtection {
+  max_per_item?: number;
+  max_per_year?: number;
+  price_drop_window_days?: number;
+  coverage_details?: string[];
+  exclusions?: string[];
+}
+
+export interface RoadsideAssistance {
+  provider?: string;
+  towing_miles?: number;
+  services?: string[];
+  coverage_details?: string[];
+  limitations?: string[];
+}
+
+export interface EmergencyAssistance {
+  evacuation_coverage?: number;
+  medical_coverage?: number;
+  services?: string[];
+  coverage_details?: string[];
+  exclusions?: string[];
+}
+
+// ============================================
+// INSURANCE POLICY COVERAGE INTERFACES
+// ============================================
+
+export interface AutoInsuranceCoverage {
+  policy_number?: string;
+  insurer?: string;
+  // Liability coverage
+  bodily_injury_per_person?: number;
+  bodily_injury_per_accident?: number;
+  property_damage?: number;
+  // Vehicle coverage
+  collision_deductible?: number;
+  comprehensive_deductible?: number;
+  // Additional coverage
+  uninsured_motorist?: number;
+  underinsured_motorist?: number;
+  medical_payments?: number;
+  personal_injury_protection?: number;
+  // Rental reimbursement
+  rental_reimbursement_daily?: number;
+  rental_reimbursement_max?: number;
+  // Roadside
+  roadside_assistance?: boolean;
+  roadside_details?: string[];
+  // Gap coverage
+  gap_coverage?: boolean;
+  // General
+  covered_vehicles?: string[];
+  covered_drivers?: string[];
+  exclusions?: string[];
+}
+
+export interface HomeInsuranceCoverage {
+  policy_number?: string;
+  insurer?: string;
+  policy_type?: "HO-1" | "HO-2" | "HO-3" | "HO-4" | "HO-5" | "HO-6" | "HO-7" | "HO-8";
+  // Dwelling coverage
+  dwelling_coverage?: number;
+  other_structures?: number;
+  personal_property?: number;
+  loss_of_use?: number;
+  // Liability
+  personal_liability?: number;
+  medical_payments?: number;
+  // Deductibles
+  standard_deductible?: number;
+  wind_hail_deductible?: number;
+  hurricane_deductible?: number;
+  // Additional coverages
+  scheduled_items?: { item: string; value: number }[];
+  water_backup?: number;
+  identity_theft?: boolean;
+  equipment_breakdown?: boolean;
+  // Exclusions
+  exclusions?: string[];
+  flood_coverage?: boolean;
+  earthquake_coverage?: boolean;
+}
+
+export interface RentersInsuranceCoverage {
+  policy_number?: string;
+  insurer?: string;
+  // Coverage amounts
+  personal_property?: number;
+  loss_of_use?: number;
+  personal_liability?: number;
+  medical_payments?: number;
+  // Deductible
+  deductible?: number;
+  // Additional
+  replacement_cost?: boolean;
+  scheduled_items?: { item: string; value: number }[];
+  identity_theft?: boolean;
+  // Exclusions
+  exclusions?: string[];
+}
+
 export interface CreditCard {
   id: string;
   name: string;
@@ -66,17 +195,26 @@ export interface CreditCard {
   network: CardNetwork;
   annualFee: number;
   categories: CategoryId[];
+  // Rental car coverage
   rental?: {
     coverageType: "primary" | "secondary";
     maxCoverage: number;
     maxDays: number;
   };
   rentalExclusions?: RentalExclusions;
+  // Travel benefits
   tripProtection?: TripProtection;
   baggageProtection?: BaggageProtection;
+  travelPerks?: TravelPerks;
+  emergencyAssistance?: EmergencyAssistance;
+  // Purchase benefits
   purchaseProtection?: PurchaseProtection;
   extendedWarranty?: ExtendedWarranty;
-  travelPerks?: TravelPerks;
+  returnProtection?: ReturnProtection;
+  priceProtection?: PriceProtection;
+  // Other benefits
+  cellPhoneProtection?: CellPhoneProtection;
+  roadsideAssistance?: RoadsideAssistance;
 }
 
 export interface Policy {
@@ -85,6 +223,10 @@ export interface Policy {
   type: "auto" | "home" | "renters" | "other";
   filename: string;
   categories: CategoryId[];
+  // Structured coverage data (optional - can be filled in by user)
+  autoCoverage?: AutoInsuranceCoverage;
+  homeCoverage?: HomeInsuranceCoverage;
+  rentersCoverage?: RentersInsuranceCoverage;
 }
 
 export interface CommonPlan {

@@ -48,6 +48,43 @@ export interface TravelPerksForAPI {
   other_perks?: string[];
 }
 
+// Cell phone protection details
+export interface CellPhoneProtectionForAPI {
+  max_per_claim?: number;
+  max_claims_per_year?: number;
+  deductible?: number;
+  coverage_details?: string[];
+  requirements?: string[];
+  exclusions?: string[];
+}
+
+// Roadside assistance details
+export interface RoadsideAssistanceForAPI {
+  provider?: string;
+  towing_miles?: number;
+  services?: string[];
+  coverage_details?: string[];
+  limitations?: string[];
+}
+
+// Emergency assistance details
+export interface EmergencyAssistanceForAPI {
+  evacuation_coverage?: number;
+  medical_coverage?: number;
+  services?: string[];
+  coverage_details?: string[];
+  exclusions?: string[];
+}
+
+// Return protection details
+export interface ReturnProtectionForAPI {
+  max_per_item?: number;
+  max_per_year?: number;
+  return_window_days?: number;
+  coverage_details?: string[];
+  exclusions?: string[];
+}
+
 export interface CoverageCardForAPI {
   card_name: string;
   issuer: string;
@@ -64,12 +101,18 @@ export interface CoverageCardForAPI {
   country_exclusions?: string[];
   country_notes?: string;
   activation_requirements?: string[];
-  // Additional benefit types
+  // Travel benefits
   trip_protection?: TripProtectionForAPI;
   baggage_protection?: BaggageProtectionForAPI;
+  travel_perks?: TravelPerksForAPI;
+  emergency_assistance?: EmergencyAssistanceForAPI;
+  // Purchase benefits
   purchase_protection?: PurchaseProtectionForAPI;
   extended_warranty?: ExtendedWarrantyForAPI;
-  travel_perks?: TravelPerksForAPI;
+  return_protection?: ReturnProtectionForAPI;
+  // Other benefits
+  cell_phone_protection?: CellPhoneProtectionForAPI;
+  roadside_assistance?: RoadsideAssistanceForAPI;
 }
 
 export interface PolicyLimits {
@@ -81,12 +124,77 @@ export interface PolicyLimits {
   [key: string]: number | undefined;
 }
 
+// Auto insurance coverage for API
+export interface AutoInsuranceCoverageForAPI {
+  policy_number?: string;
+  insurer?: string;
+  bodily_injury_per_person?: number;
+  bodily_injury_per_accident?: number;
+  property_damage?: number;
+  collision_deductible?: number;
+  comprehensive_deductible?: number;
+  uninsured_motorist?: number;
+  underinsured_motorist?: number;
+  medical_payments?: number;
+  personal_injury_protection?: number;
+  rental_reimbursement_daily?: number;
+  rental_reimbursement_max?: number;
+  roadside_assistance?: boolean;
+  roadside_details?: string[];
+  gap_coverage?: boolean;
+  covered_vehicles?: string[];
+  covered_drivers?: string[];
+  exclusions?: string[];
+}
+
+// Home insurance coverage for API
+export interface HomeInsuranceCoverageForAPI {
+  policy_number?: string;
+  insurer?: string;
+  policy_type?: string;
+  dwelling_coverage?: number;
+  other_structures?: number;
+  personal_property?: number;
+  loss_of_use?: number;
+  personal_liability?: number;
+  medical_payments?: number;
+  standard_deductible?: number;
+  wind_hail_deductible?: number;
+  hurricane_deductible?: number;
+  scheduled_items?: { item: string; value: number }[];
+  water_backup?: number;
+  identity_theft?: boolean;
+  equipment_breakdown?: boolean;
+  exclusions?: string[];
+  flood_coverage?: boolean;
+  earthquake_coverage?: boolean;
+}
+
+// Renters insurance coverage for API
+export interface RentersInsuranceCoverageForAPI {
+  policy_number?: string;
+  insurer?: string;
+  personal_property?: number;
+  loss_of_use?: number;
+  personal_liability?: number;
+  medical_payments?: number;
+  deductible?: number;
+  replacement_cost?: boolean;
+  scheduled_items?: { item: string; value: number }[];
+  identity_theft?: boolean;
+  exclusions?: string[];
+}
+
 export interface CoveragePolicyForAPI {
   policy_name: string;
   policy_type: string;
   coverage_details?: string;
   deductible?: number;
   limits?: PolicyLimits;
+  // Structured coverage data
+  auto_coverage?: AutoInsuranceCoverageForAPI;
+  home_coverage?: HomeInsuranceCoverageForAPI;
+  renters_coverage?: RentersInsuranceCoverageForAPI;
 }
 
 export interface ChatMessage {

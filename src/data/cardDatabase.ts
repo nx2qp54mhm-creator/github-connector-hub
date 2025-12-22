@@ -1,4 +1,18 @@
-import { CreditCard, CategoryGroup, CategoryDefinition, CommonPlan, TripProtection, BaggageProtection, PurchaseProtection, ExtendedWarranty, TravelPerks } from "@/types/coverage";
+import {
+  CreditCard,
+  CategoryGroup,
+  CategoryDefinition,
+  CommonPlan,
+  TripProtection,
+  BaggageProtection,
+  PurchaseProtection,
+  ExtendedWarranty,
+  TravelPerks,
+  CellPhoneProtection,
+  RoadsideAssistance,
+  ReturnProtection,
+  EmergencyAssistance,
+} from "@/types/coverage";
 
 // Common Chase trip protection benefits
 const chaseTripProtectionPremium: TripProtection = {
@@ -341,6 +355,186 @@ const amexDeltaReservePerks: TravelPerks = {
   ],
 };
 
+// ============================================
+// CELL PHONE PROTECTION
+// ============================================
+
+// Wells Fargo and some Ink cards have cell phone protection
+const inkCellPhoneProtection: CellPhoneProtection = {
+  max_per_claim: 1000,
+  max_claims_per_year: 3,
+  deductible: 100,
+  coverage_details: [
+    "Covers theft and damage to cell phones",
+    "Up to $1,000 per claim, $3,000 per year",
+    "Covers you and employees listed on your cell phone bill",
+  ],
+  requirements: [
+    "Pay your monthly cell phone bill with your card",
+    "File claim within 90 days of incident",
+    "Provide copy of cell phone bill showing payment",
+  ],
+  exclusions: [
+    "Mysterious disappearance (without evidence of theft)",
+    "Phones not listed on your wireless bill",
+    "Cosmetic damage that doesn't affect function",
+    "Intentional damage",
+    "Loss (not theft)",
+  ],
+};
+
+// ============================================
+// ROADSIDE ASSISTANCE
+// ============================================
+
+// Premium card roadside assistance
+const premiumRoadsideAssistance: RoadsideAssistance = {
+  provider: "Cross Country Motor Club",
+  towing_miles: 10,
+  services: [
+    "Towing (up to 10 miles)",
+    "Flat tire change (using your spare)",
+    "Jump start for dead battery",
+    "Lockout service (up to $50)",
+    "Fuel delivery (up to 2 gallons, you pay for fuel)",
+    "Winching (if stuck within 100 feet of road)",
+  ],
+  coverage_details: [
+    "Available 24/7, 365 days a year",
+    "Covers any vehicle you're driving or riding in",
+    "No limit on number of service calls per year",
+    "Service available in US and Canada",
+  ],
+  limitations: [
+    "Towing beyond 10 miles at your expense",
+    "Does not cover repair costs",
+    "May have wait times during peak periods",
+    "Lockout service capped at $50",
+  ],
+};
+
+// Standard roadside assistance
+const standardRoadsideAssistance: RoadsideAssistance = {
+  provider: "Cross Country Motor Club",
+  towing_miles: 5,
+  services: [
+    "Towing (up to 5 miles)",
+    "Flat tire change (using your spare)",
+    "Jump start for dead battery",
+    "Lockout service (up to $50)",
+  ],
+  coverage_details: [
+    "Available 24/7, 365 days a year",
+    "Covers any vehicle you're driving",
+    "Up to 4 service calls per year",
+  ],
+  limitations: [
+    "Limited to 4 calls per year",
+    "Towing beyond 5 miles at your expense",
+    "Does not cover repair costs",
+  ],
+};
+
+// Amex roadside assistance (premium)
+const amexPremiumRoadsideAssistance: RoadsideAssistance = {
+  provider: "American Express Roadside Assistance",
+  towing_miles: 10,
+  services: [
+    "Towing (up to 10 miles)",
+    "Flat tire service",
+    "Dead battery jump start",
+    "Locksmith services (up to $100 for parts/labor)",
+    "Emergency fuel delivery (up to 5 gallons, fuel cost covered)",
+    "Winching/extrication services",
+  ],
+  coverage_details: [
+    "Available 24 hours a day, 365 days a year",
+    "Up to 4 service calls per 12-month period",
+    "Service available in the US and Canada",
+    "No membership fees - included with your card",
+  ],
+  limitations: [
+    "Maximum 4 service calls per year",
+    "Towing beyond 10 miles at cardholder's expense",
+    "Wait times may apply during high-demand periods",
+  ],
+};
+
+// ============================================
+// EMERGENCY ASSISTANCE
+// ============================================
+
+// Premium emergency/travel assistance
+const premiumEmergencyAssistance: EmergencyAssistance = {
+  evacuation_coverage: 100000,
+  medical_coverage: 2500,
+  services: [
+    "Emergency medical evacuation to nearest adequate facility",
+    "Medical repatriation to home country",
+    "Return of minor children if you're hospitalized",
+    "Emergency medical and dental referrals",
+    "Lost luggage assistance",
+    "Legal and bail bond referrals",
+    "Emergency message relay",
+    "Prescription assistance and eyeglass replacement",
+  ],
+  coverage_details: [
+    "Available 24/7 when traveling 100+ miles from home",
+    "Covers you and immediate family members",
+    "No pre-authorization required for emergencies",
+    "Coordinates with your travel insurance",
+  ],
+  exclusions: [
+    "Pre-existing medical conditions (some limitations)",
+    "Travel against medical advice",
+    "Travel to countries under travel warnings",
+    "Elective or cosmetic procedures",
+  ],
+};
+
+// Standard emergency assistance
+const standardEmergencyAssistance: EmergencyAssistance = {
+  evacuation_coverage: 50000,
+  services: [
+    "Emergency medical evacuation",
+    "Medical referrals worldwide",
+    "Emergency message relay",
+    "Lost luggage and document assistance",
+  ],
+  coverage_details: [
+    "Available when traveling 100+ miles from home",
+    "Hotline available 24/7",
+  ],
+  exclusions: [
+    "Pre-existing conditions",
+    "Non-emergency situations",
+  ],
+};
+
+// ============================================
+// RETURN PROTECTION
+// ============================================
+
+// Amex return protection (being phased out on many cards but still on some)
+const amexReturnProtection: ReturnProtection = {
+  max_per_item: 300,
+  max_per_year: 1000,
+  return_window_days: 90,
+  coverage_details: [
+    "Return eligible items within 90 days of purchase",
+    "Items must be in original condition",
+    "Amex will refund if merchant won't accept return",
+  ],
+  exclusions: [
+    "Jewelry, watches, and furs",
+    "Items purchased for resale",
+    "Perishable items",
+    "Items with limited return policies disclosed at purchase",
+    "Motorized vehicles",
+    "Computer software",
+  ],
+};
+
 const chaseExclusions = {
   what_is_covered: [
     "Collision damage to the rental vehicle",
@@ -415,13 +609,15 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       issuer: "Chase",
       network: "Visa",
       annualFee: 795,
-      categories: ["travel-rental", "travel-trip", "travel-baggage", "travel-perks", "purchase-protection"],
+      categories: ["travel-rental", "travel-trip", "travel-baggage", "travel-perks", "travel-emergency", "roadside-assistance", "purchase-protection"],
       rental: { coverageType: "primary", maxCoverage: 75000, maxDays: 31 },
       rentalExclusions: chaseExclusions,
       tripProtection: chaseTripProtectionPremium,
       baggageProtection: chaseBaggageProtectionPremium,
       purchaseProtection: chasePurchaseProtectionPremium,
       travelPerks: sapphireReservePerks,
+      emergencyAssistance: premiumEmergencyAssistance,
+      roadsideAssistance: premiumRoadsideAssistance,
     },
     {
       id: "chase_sapphire_preferred",
@@ -430,12 +626,14 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       issuer: "Chase",
       network: "Visa",
       annualFee: 95,
-      categories: ["travel-rental", "travel-trip", "travel-baggage", "purchase-protection"],
+      categories: ["travel-rental", "travel-trip", "travel-baggage", "travel-emergency", "roadside-assistance", "purchase-protection"],
       rental: { coverageType: "primary", maxCoverage: 60000, maxDays: 31 },
       rentalExclusions: chaseExclusions,
       tripProtection: chaseTripProtectionStandard,
       baggageProtection: chaseBaggageProtectionStandard,
       purchaseProtection: chasePurchaseProtectionStandard,
+      emergencyAssistance: standardEmergencyAssistance,
+      roadsideAssistance: standardRoadsideAssistance,
     },
     {
       id: "chase_freedom_unlimited",
@@ -470,11 +668,13 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       issuer: "Chase",
       network: "Visa",
       annualFee: 95,
-      categories: ["travel-rental", "travel-trip", "purchase-protection"],
+      categories: ["travel-rental", "travel-trip", "phone-protection", "roadside-assistance", "purchase-protection"],
       rental: { coverageType: "primary", maxCoverage: 75000, maxDays: 31 },
       rentalExclusions: chaseExclusions,
       tripProtection: chaseTripProtectionStandard,
       purchaseProtection: chasePurchaseProtectionPremium,
+      cellPhoneProtection: inkCellPhoneProtection,
+      roadsideAssistance: standardRoadsideAssistance,
     },
   ],
   amex: [
@@ -485,13 +685,16 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       issuer: "American Express",
       network: "American Express",
       annualFee: 695,
-      categories: ["travel-rental", "travel-trip", "travel-baggage", "travel-perks", "purchase-protection"],
+      categories: ["travel-rental", "travel-trip", "travel-baggage", "travel-perks", "travel-emergency", "roadside-assistance", "purchase-protection", "purchase-return"],
       rental: { coverageType: "secondary", maxCoverage: 75000, maxDays: 30 },
       rentalExclusions: amexExclusions,
       tripProtection: amexTripProtectionPremium,
       baggageProtection: amexBaggageProtectionPremium,
       purchaseProtection: amexPurchaseProtectionPremium,
       travelPerks: amexPlatinumPerks,
+      emergencyAssistance: premiumEmergencyAssistance,
+      roadsideAssistance: amexPremiumRoadsideAssistance,
+      returnProtection: amexReturnProtection,
     },
     {
       id: "amex_gold",
@@ -500,13 +703,15 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       issuer: "American Express",
       network: "American Express",
       annualFee: 250,
-      categories: ["travel-rental", "travel-trip", "travel-baggage", "purchase-protection"],
+      categories: ["travel-rental", "travel-trip", "travel-baggage", "travel-emergency", "purchase-protection", "purchase-return"],
       rental: { coverageType: "secondary", maxCoverage: 50000, maxDays: 30 },
       rentalExclusions: amexExclusions,
       tripProtection: amexTripProtectionStandard,
       baggageProtection: amexBaggageProtectionStandard,
       purchaseProtection: amexPurchaseProtectionStandard,
       travelPerks: amexGoldPerks,
+      emergencyAssistance: standardEmergencyAssistance,
+      returnProtection: amexReturnProtection,
     },
     {
       id: "amex_green",
@@ -515,11 +720,12 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       issuer: "American Express",
       network: "American Express",
       annualFee: 150,
-      categories: ["travel-rental", "travel-trip", "travel-baggage"],
+      categories: ["travel-rental", "travel-trip", "travel-baggage", "travel-emergency"],
       rental: { coverageType: "secondary", maxCoverage: 50000, maxDays: 30 },
       rentalExclusions: amexExclusions,
       tripProtection: amexTripProtectionStandard,
       baggageProtection: amexBaggageProtectionStandard,
+      emergencyAssistance: standardEmergencyAssistance,
     },
     {
       id: "amex_business_platinum",
@@ -528,12 +734,15 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       issuer: "American Express",
       network: "American Express",
       annualFee: 695,
-      categories: ["travel-rental", "travel-trip", "travel-perks", "purchase-protection"],
+      categories: ["travel-rental", "travel-trip", "travel-perks", "travel-emergency", "roadside-assistance", "purchase-protection", "purchase-return"],
       rental: { coverageType: "secondary", maxCoverage: 75000, maxDays: 42 },
       rentalExclusions: amexExclusions,
       tripProtection: amexTripProtectionPremium,
       purchaseProtection: amexPurchaseProtectionPremium,
       travelPerks: amexPlatinumPerks,
+      emergencyAssistance: premiumEmergencyAssistance,
+      roadsideAssistance: amexPremiumRoadsideAssistance,
+      returnProtection: amexReturnProtection,
     },
     {
       id: "amex_delta_reserve",
@@ -542,12 +751,14 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       issuer: "American Express",
       network: "American Express",
       annualFee: 650,
-      categories: ["travel-rental", "travel-trip", "travel-baggage", "travel-perks"],
+      categories: ["travel-rental", "travel-trip", "travel-baggage", "travel-perks", "travel-emergency", "roadside-assistance"],
       rental: { coverageType: "secondary", maxCoverage: 75000, maxDays: 30 },
       rentalExclusions: amexExclusions,
       tripProtection: amexTripProtectionPremium,
       baggageProtection: amexBaggageProtectionPremium,
       travelPerks: amexDeltaReservePerks,
+      emergencyAssistance: premiumEmergencyAssistance,
+      roadsideAssistance: amexPremiumRoadsideAssistance,
     },
     {
       id: "amex_delta_gold",
@@ -556,11 +767,12 @@ export const cardDatabase: Record<string, CreditCard[]> = {
       issuer: "American Express",
       network: "American Express",
       annualFee: 150,
-      categories: ["travel-rental", "travel-trip", "travel-baggage"],
+      categories: ["travel-rental", "travel-trip", "travel-baggage", "travel-emergency"],
       rental: { coverageType: "secondary", maxCoverage: 50000, maxDays: 30 },
       rentalExclusions: amexExclusions,
       tripProtection: amexTripProtectionStandard,
       baggageProtection: amexBaggageProtectionStandard,
+      emergencyAssistance: standardEmergencyAssistance,
     },
   ],
 };
