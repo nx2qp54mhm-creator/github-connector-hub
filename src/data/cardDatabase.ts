@@ -318,7 +318,7 @@ export function getCardById(id: string): CreditCard | undefined {
   return getAllCards().find(card => card.id === id);
 }
 
-export function getCardsForCategory(categoryId: string, selectedCardIds: string[]): CreditCard[] {
+export function getCardsForCategory(categoryId: CategoryId, selectedCardIds: string[]): CreditCard[] {
   return getAllCards()
-    .filter(card => selectedCardIds.includes(card.id) && card.categories.includes(categoryId as any));
+    .filter(card => selectedCardIds.includes(card.id) && card.categories.includes(categoryId));
 }

@@ -110,7 +110,7 @@ export function ChatDock() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
-  const handleSend = async () => {
+  const handleSend = async (): Promise<void> => {
     const text = input.trim();
     if (!text || isLoading) return;
 
@@ -170,7 +170,7 @@ export function ChatDock() {
         };
         setMessages(prev => limitMessages([...prev, errorMessage]));
       }
-    } catch (err) {
+    } catch (err: unknown) {
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
@@ -181,7 +181,7 @@ export function ChatDock() {
       setIsLoading(false);
     }
   };
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent): void => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();

@@ -23,7 +23,7 @@ export function CoverageLibrary() {
   );
 
   const isEmpty = selectedCards.length === 0 && uploadedPolicies.length === 0 && addedPlans.length === 0;
-  const formatDate = (iso: string) => {
+  const formatDate = (iso: string): string => {
     const date = new Date(iso);
     return `${date.toLocaleDateString()} at ${date.toLocaleTimeString([], {
       hour: '2-digit',

@@ -18,12 +18,21 @@ export interface CoverageCardForAPI {
   activation_requirements?: string[];
 }
 
+export interface PolicyLimits {
+  liability?: number;
+  collision?: number;
+  comprehensive?: number;
+  medical_payments?: number;
+  uninsured_motorist?: number;
+  [key: string]: number | undefined;
+}
+
 export interface CoveragePolicyForAPI {
   policy_name: string;
   policy_type: string;
   coverage_details?: string;
   deductible?: number;
-  limits?: Record<string, any>;
+  limits?: PolicyLimits;
 }
 
 export interface ChatMessage {
@@ -66,7 +75,7 @@ export async function askCoverageAssistant(
     }
 
     return data as AssistantResponse;
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Error calling coverage assistant:", err);
     return {
       success: false,

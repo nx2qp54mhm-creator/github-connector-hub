@@ -93,7 +93,7 @@ export function useRateLimiter(options: RateLimiterOptions) {
 }
 
 // Debounce hook for preventing rapid successive calls
-export function useDebounce<T extends (...args: any[]) => any>(
+export function useDebounce<T extends (...args: never[]) => unknown>(
   callback: T,
   delay: number
 ): { debouncedFn: T; isPending: boolean } {

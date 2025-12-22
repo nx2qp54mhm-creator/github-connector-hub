@@ -33,7 +33,7 @@ const Index = () => {
     }
   }, [user, loading, navigate]);
 
-  const handleCategoryClick = (category: CategoryDefinition) => {
+  const handleCategoryClick = (category: CategoryDefinition): void => {
     setSelectedCategory(category);
     setSheetOpen(true);
   };
