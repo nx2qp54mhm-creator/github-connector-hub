@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCoverageStore } from "@/hooks/useCoverageStore";
-import { getCardById } from "@/data/cardDatabase";
+import { getCardById, commonPlans } from "@/data/cardDatabase";
 import { askCoverageAssistant, CoverageCardForAPI, CoveragePolicyForAPI, ChatMessage } from "@/services/coverageAssistant";
 import { cn } from "@/lib/utils";
 import { useRateLimiter } from "@/hooks/useRateLimiter";
@@ -56,7 +56,7 @@ export function ChatDock() {
   const [messages, setMessages] = useState<Message[]>([{
     id: "welcome",
     role: "assistant",
-    content: "Hi! I can help you understand your coverage. Try asking about rental cars, trip protection, or what's covered."
+    content: "Hi! I can help you understand all your coverage benefits. Ask me about rental cars, trip cancellation, baggage protection, purchase protection, extended warranties, travel perks, lounge access, or any of your added policies and plans."
   }]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -71,6 +71,7 @@ export function ChatDock() {
   // Get data from the coverage store
   const selectedCards = useCoverageStore(state => state.selectedCards);
   const uploadedPolicies = useCoverageStore(state => state.uploadedPolicies);
+  const addedPlans = useCoverageStore(state => state.addedPlans);
   const totalItems = useCoverageStore(state => state.getTotalItems());
 
   // Memoize formatted cards to prevent recalculation on every render
@@ -79,30 +80,97 @@ export function ChatDock() {
       const card = getCardById(cardId);
       if (!card) return null;
 
-      // Use the correct field names from cardDatabase
+      // Extract all benefit data from the card
       const rental = card.rental;
       const exclusions = card.rentalExclusions;
+      const trip = card.tripProtection;
+      const baggage = card.baggageProtection;
+      const purchase = card.purchaseProtection;
+      const warranty = card.extendedWarranty;
+      const perks = card.travelPerks;
+
       return {
         card_name: card.fullName || card.name,
         issuer: card.issuer,
+        annual_fee: card.annualFee,
+        categories: card.categories,
+        // Rental car coverage
         coverage_type: rental?.coverageType,
         max_coverage_amount: rental?.maxCoverage,
         max_rental_days: rental?.maxDays,
         what_is_covered: exclusions?.what_is_covered,
         what_is_not_covered: exclusions?.what_is_not_covered,
+        vehicle_exclusions: exclusions?.vehicle_exclusions,
         country_exclusions: exclusions?.country_exclusions,
-        country_notes: exclusions?.country_notes
+        country_notes: exclusions?.country_notes,
+        // Trip protection
+        trip_protection: trip ? {
+          cancellation_coverage: trip.cancellation_coverage,
+          interruption_coverage: trip.interruption_coverage,
+          delay_coverage: trip.delay_coverage,
+          delay_threshold_hours: trip.delay_threshold_hours,
+          covered_reasons: trip.covered_reasons,
+          exclusions: trip.exclusions,
+        } : undefined,
+        // Baggage protection
+        baggage_protection: baggage ? {
+          delay_coverage: baggage.delay_coverage,
+          delay_threshold_hours: baggage.delay_threshold_hours,
+          lost_baggage_coverage: baggage.lost_baggage_coverage,
+          coverage_details: baggage.coverage_details,
+          exclusions: baggage.exclusions,
+        } : undefined,
+        // Purchase protection
+        purchase_protection: purchase ? {
+          max_per_claim: purchase.max_per_claim,
+          max_per_year: purchase.max_per_year,
+          coverage_period_days: purchase.coverage_period_days,
+          what_is_covered: purchase.what_is_covered,
+          what_is_not_covered: purchase.what_is_not_covered,
+        } : undefined,
+        // Extended warranty
+        extended_warranty: warranty ? {
+          extension_years: warranty.extension_years,
+          max_original_warranty_years: warranty.max_original_warranty_years,
+          max_per_claim: warranty.max_per_claim,
+          coverage_details: warranty.coverage_details,
+          exclusions: warranty.exclusions,
+        } : undefined,
+        // Travel perks
+        travel_perks: perks ? {
+          lounge_access: perks.lounge_access,
+          travel_credits: perks.travel_credits,
+          other_perks: perks.other_perks,
+        } : undefined,
       };
     }).filter((card): card is NonNullable<typeof card> => card !== null) as CoverageCardForAPI[];
   }, [selectedCards]);
 
   // Memoize formatted policies to prevent recalculation on every render
   const formattedPolicies = useMemo((): CoveragePolicyForAPI[] => {
-    return uploadedPolicies.map(policy => ({
+    // Include uploaded policies
+    const policies: CoveragePolicyForAPI[] = uploadedPolicies.map(policy => ({
       policy_name: policy.name,
       policy_type: policy.type,
     }));
-  }, [uploadedPolicies]);
+
+    // Include added common plans with their details
+    addedPlans.forEach(addedPlan => {
+      const planDetails = commonPlans.find(p => p.id === addedPlan.id);
+      if (planDetails) {
+        policies.push({
+          policy_name: planDetails.name,
+          policy_type: "protection_plan",
+          coverage_details: [
+            planDetails.description || "",
+            ...(planDetails.coverage_details || []),
+          ].filter(Boolean).join(". "),
+        });
+      }
+    });
+
+    return policies;
+  }, [uploadedPolicies, addedPlans]);
 
   // Auto-scroll to bottom
   useEffect(() => {
