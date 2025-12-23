@@ -131,14 +131,26 @@ export interface AutoInsuranceCoverageForAPI {
   bodily_injury_per_person?: number;
   bodily_injury_per_accident?: number;
   property_damage?: number;
+  // Vehicle coverage
+  collision_covered?: boolean;
   collision_deductible?: number;
+  comprehensive_covered?: boolean;
   comprehensive_deductible?: number;
-  uninsured_motorist?: number;
+  // Uninsured motorist
+  uninsured_motorist_covered?: boolean;
+  uninsured_motorist_per_person?: number;
+  uninsured_motorist_per_accident?: number;
+  uninsured_motorist?: number; // Legacy field
   underinsured_motorist?: number;
+  // Medical payments
+  medical_payments_covered?: boolean;
   medical_payments?: number;
   personal_injury_protection?: number;
+  // Rental reimbursement
+  rental_reimbursement_covered?: boolean;
   rental_reimbursement_daily?: number;
   rental_reimbursement_max?: number;
+  // Roadside & gap
   roadside_assistance?: boolean;
   roadside_details?: string[];
   gap_coverage?: boolean;

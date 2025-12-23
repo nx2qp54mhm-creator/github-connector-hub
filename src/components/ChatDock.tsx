@@ -197,15 +197,27 @@ export function ChatDock() {
       return {
         policy_number: autoPolicy.policy_number ?? undefined,
         insurer: autoPolicy.insurance_company ?? undefined,
+        // Liability coverage
         bodily_injury_per_person: autoPolicy.bodily_injury_per_person ?? undefined,
         bodily_injury_per_accident: autoPolicy.bodily_injury_per_accident ?? undefined,
         property_damage: autoPolicy.property_damage_limit ?? undefined,
+        // Vehicle coverage - pass both the boolean and the deductible
+        collision_covered: autoPolicy.collision_covered ?? undefined,
         collision_deductible: autoPolicy.collision_covered ? (autoPolicy.collision_deductible ?? undefined) : undefined,
+        comprehensive_covered: autoPolicy.comprehensive_covered ?? undefined,
         comprehensive_deductible: autoPolicy.comprehensive_covered ? (autoPolicy.comprehensive_deductible ?? undefined) : undefined,
-        uninsured_motorist: autoPolicy.uninsured_motorist_covered ? (autoPolicy.uninsured_motorist_per_person ?? undefined) : undefined,
+        // Uninsured motorist - pass boolean and both per-person and per-accident
+        uninsured_motorist_covered: autoPolicy.uninsured_motorist_covered ?? undefined,
+        uninsured_motorist_per_person: autoPolicy.uninsured_motorist_covered ? (autoPolicy.uninsured_motorist_per_person ?? undefined) : undefined,
+        uninsured_motorist_per_accident: autoPolicy.uninsured_motorist_covered ? (autoPolicy.uninsured_motorist_per_accident ?? undefined) : undefined,
+        // Medical payments - pass boolean and limit
+        medical_payments_covered: autoPolicy.medical_payments_covered ?? undefined,
         medical_payments: autoPolicy.medical_payments_covered ? (autoPolicy.medical_payments_limit ?? undefined) : undefined,
+        // Rental reimbursement - pass boolean and limits
+        rental_reimbursement_covered: autoPolicy.rental_reimbursement_covered ?? undefined,
         rental_reimbursement_daily: autoPolicy.rental_reimbursement_covered ? (autoPolicy.rental_reimbursement_daily ?? undefined) : undefined,
         rental_reimbursement_max: autoPolicy.rental_reimbursement_covered ? (autoPolicy.rental_reimbursement_max ?? undefined) : undefined,
+        // Roadside assistance
         roadside_assistance: autoPolicy.roadside_assistance_covered ?? undefined,
       };
     };

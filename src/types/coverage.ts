@@ -121,14 +121,22 @@ export interface AutoInsuranceCoverage {
   bodily_injury_per_accident?: number;
   property_damage?: number;
   // Vehicle coverage
+  collision_covered?: boolean;
   collision_deductible?: number;
+  comprehensive_covered?: boolean;
   comprehensive_deductible?: number;
+  // Uninsured motorist
+  uninsured_motorist_covered?: boolean;
+  uninsured_motorist_per_person?: number;
+  uninsured_motorist_per_accident?: number;
   // Additional coverage
-  uninsured_motorist?: number;
+  uninsured_motorist?: number; // Legacy field
   underinsured_motorist?: number;
+  medical_payments_covered?: boolean;
   medical_payments?: number;
   personal_injury_protection?: number;
   // Rental reimbursement
+  rental_reimbursement_covered?: boolean;
   rental_reimbursement_daily?: number;
   rental_reimbursement_max?: number;
   // Roadside
