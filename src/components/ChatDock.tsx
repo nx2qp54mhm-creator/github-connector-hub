@@ -190,11 +190,18 @@ export function ChatDock() {
 
   // Memoize formatted policies to prevent recalculation on every render
   const formattedPolicies = useMemo((): CoveragePolicyForAPI[] => {
+    // Debug logging
+    console.log("[ChatDock] autoPolicy from DB:", autoPolicy);
+    console.log("[ChatDock] uploadedPolicies:", uploadedPolicies);
+
     // Helper to convert database auto policy to AutoInsuranceCoverage format
     const getAutoCoverageFromDB = (): AutoInsuranceCoverage | undefined => {
-      if (!autoPolicy) return undefined;
+      if (!autoPolicy) {
+        console.log("[ChatDock] No autoPolicy data from database");
+        return undefined;
+      }
 
-      return {
+      const coverage = {
         policy_number: autoPolicy.policy_number ?? undefined,
         insurer: autoPolicy.insurance_company ?? undefined,
         // Liability coverage
@@ -220,6 +227,8 @@ export function ChatDock() {
         // Roadside assistance
         roadside_assistance: autoPolicy.roadside_assistance_covered ?? undefined,
       };
+      console.log("[ChatDock] Converted auto coverage:", coverage);
+      return coverage;
     };
 
     // Include uploaded policies with their structured coverage data
@@ -227,10 +236,14 @@ export function ChatDock() {
       // For auto policies, merge data from Supabase if available
       let autoCoverage = policy.autoCoverage;
       if (policy.type === "auto") {
+        console.log("[ChatDock] Found auto policy:", policy.name);
         const dbCoverage = getAutoCoverageFromDB();
         if (dbCoverage) {
           // Merge: prefer policy-specific data, but fill in from DB
           autoCoverage = { ...dbCoverage, ...policy.autoCoverage };
+          console.log("[ChatDock] Merged auto coverage:", autoCoverage);
+        } else {
+          console.log("[ChatDock] No DB coverage to merge");
         }
       }
 
@@ -242,6 +255,8 @@ export function ChatDock() {
         renters_coverage: policy.rentersCoverage,
       };
     });
+
+    console.log("[ChatDock] Final formatted policies:", policies);
 
     // Include added common plans with their details
     addedPlans.forEach(addedPlan => {
