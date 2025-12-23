@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 const groupIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   travel: Plane,
   purchases: ShoppingCart,
-  foundational: Home,
+  core: Home,
 };
 
 const Index = () => {

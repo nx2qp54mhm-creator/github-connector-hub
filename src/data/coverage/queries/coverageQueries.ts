@@ -149,7 +149,7 @@ export class CoverageQueryEngine {
     // Check policy type to determine covered categories
     return this.policies.filter((policy) => {
       const coveredCategories = getPolicyCoveredCategories(
-        policy.policy_type as "auto" | "home" | "renters" | "umbrella"
+        policy.type as "auto" | "home" | "renters" | "umbrella"
       );
       return coveredCategories.includes(categoryId);
     });
@@ -514,7 +514,7 @@ export class CoverageQueryEngine {
   private formatPoliciesForAPI(): PolicyForAPI[] {
     return this.policies.map((policy) => {
       const categories = getPolicyCoveredCategories(
-        policy.policy_type as "auto" | "home" | "renters" | "umbrella"
+        policy.type as "auto" | "home" | "renters" | "umbrella"
       );
 
       const coverages: Record<
@@ -522,38 +522,38 @@ export class CoverageQueryEngine {
         { limit?: number; deductible?: number; details: string[] }
       > = {};
 
-      // Map policy coverages to standard format
-      if (policy.coverages) {
-        if (policy.coverages.liability) {
+      // Map auto policy coverages to standard format
+      if (policy.autoCoverage) {
+        if (policy.autoCoverage.bodily_injury_per_accident) {
           coverages["liability"] = {
-            limit: policy.coverages.liability.bodily_injury_per_accident,
+            limit: policy.autoCoverage.bodily_injury_per_accident,
             details: [
-              `Bodily Injury: $${policy.coverages.liability.bodily_injury_per_person?.toLocaleString()}/$${policy.coverages.liability.bodily_injury_per_accident?.toLocaleString()}`,
-              `Property Damage: $${policy.coverages.liability.property_damage?.toLocaleString()}`,
+              `Bodily Injury: $${policy.autoCoverage.bodily_injury_per_person?.toLocaleString()}/$${policy.autoCoverage.bodily_injury_per_accident?.toLocaleString()}`,
+              `Property Damage: $${policy.autoCoverage.property_damage?.toLocaleString()}`,
             ],
           };
         }
 
-        if (policy.coverages.collision) {
+        if (policy.autoCoverage.collision_covered) {
           coverages["collision"] = {
-            deductible: policy.coverages.collision.deductible,
-            details: [`Deductible: $${policy.coverages.collision.deductible}`],
+            deductible: policy.autoCoverage.collision_deductible,
+            details: [`Deductible: $${policy.autoCoverage.collision_deductible}`],
           };
         }
 
-        if (policy.coverages.comprehensive) {
+        if (policy.autoCoverage.comprehensive_covered) {
           coverages["comprehensive"] = {
-            deductible: policy.coverages.comprehensive.deductible,
+            deductible: policy.autoCoverage.comprehensive_deductible,
             details: [
-              `Deductible: $${policy.coverages.comprehensive.deductible}`,
+              `Deductible: $${policy.autoCoverage.comprehensive_deductible}`,
             ],
           };
         }
       }
 
       return {
-        policyType: policy.policy_type,
-        carrier: policy.carrier || "Unknown Carrier",
+        policyType: policy.type,
+        carrier: policy.autoCoverage?.insurer || policy.homeCoverage?.insurer || policy.rentersCoverage?.insurer || "Unknown Carrier",
         categories,
         coverages,
       };
