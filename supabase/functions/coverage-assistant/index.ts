@@ -504,17 +504,21 @@ function formatAutoInsurance(auto: AutoInsuranceCoverage): string {
     }
   }
 
-  // Roadside assistance
-  if (auto.roadside_assistance) {
-    sections.push("\n**Roadside Assistance:** Yes");
-    if (auto.roadside_details && auto.roadside_details.length > 0) {
-      sections.push(`- Details: ${auto.roadside_details.join("; ")}`);
+  // Roadside assistance - show status whether included or not
+  if (auto.roadside_assistance !== undefined) {
+    if (auto.roadside_assistance) {
+      sections.push("\n**Roadside Assistance:** Yes (Included)");
+      if (auto.roadside_details && auto.roadside_details.length > 0) {
+        sections.push(`- Details: ${auto.roadside_details.join("; ")}`);
+      }
+    } else {
+      sections.push("\n**Roadside Assistance:** No (Not included in policy)");
     }
   }
 
-  // Gap coverage
-  if (auto.gap_coverage) {
-    sections.push("\n**Gap Coverage:** Yes");
+  // Gap coverage - show status whether included or not
+  if (auto.gap_coverage !== undefined) {
+    sections.push(`\n**Gap Coverage:** ${auto.gap_coverage ? "Yes (Included)" : "No (Not included in policy)"}`);
   }
 
   // Covered vehicles
