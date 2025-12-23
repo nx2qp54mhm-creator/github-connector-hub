@@ -58,7 +58,7 @@ export function ChatDock() {
   const [messages, setMessages] = useState<Message[]>([{
     id: "welcome",
     role: "assistant",
-    content: "Hi! I can help you understand all your coverage benefits. Ask me about rental cars, trip cancellation, baggage protection, purchase protection, extended warranties, travel perks, lounge access, or any of your added policies and plans."
+    content: "Hi! I can help you understand all your coverage. Ask me about rental cars, trip protection, baggage, roadside assistance, cell phone protection, emergency services, purchase protection, warranties, lounge access, or compare benefits across your cards and insurance policies."
   }]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
