@@ -42,7 +42,7 @@ export const categoryGroups: CategoryGroup[] = [
   {
     id: "travel",
     title: "Travel",
-    subtitle: "Rental cars, trips, baggage, and perks",
+    subtitle: "Protection when you're on the go",
     categories: [
       {
         id: "travel-rental",
@@ -107,7 +107,7 @@ export const categoryGroups: CategoryGroup[] = [
   {
     id: "purchases",
     title: "Purchases",
-    subtitle: "Protection and extended warranty",
+    subtitle: "Protection for things you buy",
     categories: [
       {
         id: "purchase-protection",
@@ -137,13 +137,6 @@ export const categoryGroups: CategoryGroup[] = [
         ],
         emptyMessage: "Return protection coverage will appear here once you add eligible cards.",
       },
-    ],
-  },
-  {
-    id: "phone-auto",
-    title: "Phone & Auto",
-    subtitle: "Device and roadside protection",
-    categories: [
       {
         id: "phone-protection",
         title: "Cell Phone Protection",
@@ -155,24 +148,12 @@ export const categoryGroups: CategoryGroup[] = [
         ],
         emptyMessage: "Cell phone protection from your cards will appear here.",
       },
-      {
-        id: "roadside-assistance",
-        title: "Roadside Assistance",
-        subtitle: "Towing, flat tires, and lockouts",
-        whatsCovered: [
-          "Towing to nearest repair facility",
-          "Flat tire service",
-          "Battery jump start",
-          "Lockout service",
-        ],
-        emptyMessage: "Roadside assistance coverage will appear here once you add cards.",
-      },
     ],
   },
   {
-    id: "foundational",
-    title: "Home & Auto",
-    subtitle: "Core insurance policies",
+    id: "core",
+    title: "Core Coverage",
+    subtitle: "Your foundational insurance policies",
     categories: [
       {
         id: "foundational-auto",
@@ -195,6 +176,18 @@ export const categoryGroups: CategoryGroup[] = [
           "Personal belongings coverage",
         ],
         emptyMessage: "Upload your home or renters insurance policy to see coverage details.",
+      },
+      {
+        id: "roadside-assistance",
+        title: "Roadside Assistance",
+        subtitle: "Towing, flat tires, and lockouts",
+        whatsCovered: [
+          "Towing to nearest repair facility",
+          "Flat tire service",
+          "Battery jump start",
+          "Lockout service",
+        ],
+        emptyMessage: "Roadside assistance coverage will appear here once you add cards.",
       },
     ],
   },

@@ -7,6 +7,11 @@ import {
   Clock,
   Home,
   CarFront,
+  Smartphone,
+  DollarSign,
+  RotateCcw,
+  Wrench,
+  AlertTriangle,
   LucideIcon
 } from "lucide-react";
 import { CategoryId } from "@/types/coverage";
@@ -21,8 +26,13 @@ const iconMap: Record<CategoryId, LucideIcon> = {
   "travel-trip": Shield,
   "travel-baggage": Luggage,
   "travel-perks": Sparkles,
+  "travel-emergency": AlertTriangle,
   "purchase-protection": ShoppingBag,
   "purchase-warranty": Clock,
+  "purchase-return": RotateCcw,
+  "purchase-price": DollarSign,
+  "phone-protection": Smartphone,
+  "roadside-assistance": Wrench,
   "foundational-auto": CarFront,
   "foundational-home": Home,
 };
