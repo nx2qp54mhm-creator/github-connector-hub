@@ -6,7 +6,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCoverageStore } from "@/hooks/useCoverageStore";
+import { useAutoPolicy } from "@/hooks/useAutoPolicy";
 import { getCardById, commonPlans } from "@/data/cardDatabase";
+import { AutoInsuranceCoverage } from "@/types/coverage";
 import { askCoverageAssistant, CoverageCardForAPI, CoveragePolicyForAPI, ChatMessage } from "@/services/coverageAssistant";
 import { cn } from "@/lib/utils";
 import { useRateLimiter } from "@/hooks/useRateLimiter";
@@ -73,6 +75,9 @@ export function ChatDock() {
   const uploadedPolicies = useCoverageStore(state => state.uploadedPolicies);
   const addedPlans = useCoverageStore(state => state.addedPlans);
   const totalItems = useCoverageStore(state => state.getTotalItems());
+
+  // Get auto policy data from Supabase (contains detailed coverage info)
+  const { autoPolicy } = useAutoPolicy();
 
   // Memoize formatted cards to prevent recalculation on every render
   const formattedCards = useMemo((): CoverageCardForAPI[] => {
@@ -185,14 +190,73 @@ export function ChatDock() {
 
   // Memoize formatted policies to prevent recalculation on every render
   const formattedPolicies = useMemo((): CoveragePolicyForAPI[] => {
+    // Debug logging
+    console.log("[ChatDock] autoPolicy from DB:", autoPolicy);
+    console.log("[ChatDock] uploadedPolicies:", uploadedPolicies);
+
+    // Helper to convert database auto policy to AutoInsuranceCoverage format
+    const getAutoCoverageFromDB = (): AutoInsuranceCoverage | undefined => {
+      if (!autoPolicy) {
+        console.log("[ChatDock] No autoPolicy data from database");
+        return undefined;
+      }
+
+      const coverage = {
+        policy_number: autoPolicy.policy_number ?? undefined,
+        insurer: autoPolicy.insurance_company ?? undefined,
+        // Liability coverage
+        bodily_injury_per_person: autoPolicy.bodily_injury_per_person ?? undefined,
+        bodily_injury_per_accident: autoPolicy.bodily_injury_per_accident ?? undefined,
+        property_damage: autoPolicy.property_damage_limit ?? undefined,
+        // Vehicle coverage - pass both the boolean and the deductible
+        collision_covered: autoPolicy.collision_covered ?? undefined,
+        collision_deductible: autoPolicy.collision_covered ? (autoPolicy.collision_deductible ?? undefined) : undefined,
+        comprehensive_covered: autoPolicy.comprehensive_covered ?? undefined,
+        comprehensive_deductible: autoPolicy.comprehensive_covered ? (autoPolicy.comprehensive_deductible ?? undefined) : undefined,
+        // Uninsured motorist - pass boolean and both per-person and per-accident
+        uninsured_motorist_covered: autoPolicy.uninsured_motorist_covered ?? undefined,
+        uninsured_motorist_per_person: autoPolicy.uninsured_motorist_covered ? (autoPolicy.uninsured_motorist_per_person ?? undefined) : undefined,
+        uninsured_motorist_per_accident: autoPolicy.uninsured_motorist_covered ? (autoPolicy.uninsured_motorist_per_accident ?? undefined) : undefined,
+        // Medical payments - pass boolean and limit
+        medical_payments_covered: autoPolicy.medical_payments_covered ?? undefined,
+        medical_payments: autoPolicy.medical_payments_covered ? (autoPolicy.medical_payments_limit ?? undefined) : undefined,
+        // Rental reimbursement - pass boolean and limits
+        rental_reimbursement_covered: autoPolicy.rental_reimbursement_covered ?? undefined,
+        rental_reimbursement_daily: autoPolicy.rental_reimbursement_covered ? (autoPolicy.rental_reimbursement_daily ?? undefined) : undefined,
+        rental_reimbursement_max: autoPolicy.rental_reimbursement_covered ? (autoPolicy.rental_reimbursement_max ?? undefined) : undefined,
+        // Roadside assistance
+        roadside_assistance: autoPolicy.roadside_assistance_covered ?? undefined,
+      };
+      console.log("[ChatDock] Converted auto coverage:", coverage);
+      return coverage;
+    };
+
     // Include uploaded policies with their structured coverage data
-    const policies: CoveragePolicyForAPI[] = uploadedPolicies.map(policy => ({
-      policy_name: policy.name,
-      policy_type: policy.type,
-      auto_coverage: policy.autoCoverage,
-      home_coverage: policy.homeCoverage,
-      renters_coverage: policy.rentersCoverage,
-    }));
+    const policies: CoveragePolicyForAPI[] = uploadedPolicies.map(policy => {
+      // For auto policies, merge data from Supabase if available
+      let autoCoverage = policy.autoCoverage;
+      if (policy.type === "auto") {
+        console.log("[ChatDock] Found auto policy:", policy.name);
+        const dbCoverage = getAutoCoverageFromDB();
+        if (dbCoverage) {
+          // Merge: prefer policy-specific data, but fill in from DB
+          autoCoverage = { ...dbCoverage, ...policy.autoCoverage };
+          console.log("[ChatDock] Merged auto coverage:", autoCoverage);
+        } else {
+          console.log("[ChatDock] No DB coverage to merge");
+        }
+      }
+
+      return {
+        policy_name: policy.name,
+        policy_type: policy.type,
+        auto_coverage: autoCoverage,
+        home_coverage: policy.homeCoverage,
+        renters_coverage: policy.rentersCoverage,
+      };
+    });
+
+    console.log("[ChatDock] Final formatted policies:", policies);
 
     // Include added common plans with their details
     addedPlans.forEach(addedPlan => {
@@ -210,7 +274,7 @@ export function ChatDock() {
     });
 
     return policies;
-  }, [uploadedPolicies, addedPlans]);
+  }, [uploadedPolicies, addedPlans, autoPolicy]);
 
   // Auto-scroll to bottom
   useEffect(() => {

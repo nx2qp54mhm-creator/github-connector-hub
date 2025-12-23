@@ -89,17 +89,30 @@ interface ReturnProtection {
 interface AutoInsuranceCoverage {
   policy_number?: string;
   insurer?: string;
+  // Liability coverage
   bodily_injury_per_person?: number;
   bodily_injury_per_accident?: number;
   property_damage?: number;
+  // Vehicle coverage
+  collision_covered?: boolean;
   collision_deductible?: number;
+  comprehensive_covered?: boolean;
   comprehensive_deductible?: number;
-  uninsured_motorist?: number;
+  // Uninsured motorist
+  uninsured_motorist_covered?: boolean;
+  uninsured_motorist_per_person?: number;
+  uninsured_motorist_per_accident?: number;
+  uninsured_motorist?: number; // Legacy field
   underinsured_motorist?: number;
+  // Medical payments
+  medical_payments_covered?: boolean;
   medical_payments?: number;
   personal_injury_protection?: number;
+  // Rental reimbursement
+  rental_reimbursement_covered?: boolean;
   rental_reimbursement_daily?: number;
   rental_reimbursement_max?: number;
+  // Roadside & gap
   roadside_assistance?: boolean;
   roadside_details?: string[];
   gap_coverage?: boolean;
@@ -449,7 +462,29 @@ function formatAutoInsurance(auto: AutoInsuranceCoverage): string {
     sections.push(`Policy Number: ${auto.policy_number}`);
   }
 
-  // Liability
+  // Collision coverage - show status whether covered or not
+  if (auto.collision_covered !== undefined) {
+    if (auto.collision_covered && auto.collision_deductible !== undefined) {
+      sections.push(`\n**Collision:** $${auto.collision_deductible} deductible`);
+    } else if (!auto.collision_covered) {
+      sections.push("\n**Collision:** Not covered");
+    }
+  } else if (auto.collision_deductible !== undefined) {
+    sections.push(`\n**Collision:** $${auto.collision_deductible} deductible`);
+  }
+
+  // Comprehensive coverage - show status whether covered or not
+  if (auto.comprehensive_covered !== undefined) {
+    if (auto.comprehensive_covered && auto.comprehensive_deductible !== undefined) {
+      sections.push(`**Comprehensive:** $${auto.comprehensive_deductible} deductible`);
+    } else if (!auto.comprehensive_covered) {
+      sections.push("**Comprehensive:** Not covered");
+    }
+  } else if (auto.comprehensive_deductible !== undefined) {
+    sections.push(`**Comprehensive:** $${auto.comprehensive_deductible} deductible`);
+  }
+
+  // Liability coverage
   if (auto.bodily_injury_per_person || auto.bodily_injury_per_accident || auto.property_damage) {
     sections.push("\n**Liability Coverage:**");
     if (auto.bodily_injury_per_person) {
@@ -463,39 +498,60 @@ function formatAutoInsurance(auto: AutoInsuranceCoverage): string {
     }
   }
 
-  // Vehicle coverage
-  if (auto.collision_deductible !== undefined || auto.comprehensive_deductible !== undefined) {
-    sections.push("\n**Vehicle Coverage:**");
-    if (auto.collision_deductible !== undefined) {
-      sections.push(`- Collision Deductible: $${auto.collision_deductible}`);
+  // Uninsured Motorist - show status whether covered or not
+  if (auto.uninsured_motorist_covered !== undefined) {
+    if (auto.uninsured_motorist_covered) {
+      sections.push("\n**Uninsured Motorist:**");
+      if (auto.uninsured_motorist_per_person) {
+        sections.push(`- Per person: $${auto.uninsured_motorist_per_person.toLocaleString()}`);
+      }
+      if (auto.uninsured_motorist_per_accident) {
+        sections.push(`- Per accident: $${auto.uninsured_motorist_per_accident.toLocaleString()}`);
+      }
+    } else {
+      sections.push("\n**Uninsured Motorist:** Not covered");
     }
-    if (auto.comprehensive_deductible !== undefined) {
-      sections.push(`- Comprehensive Deductible: $${auto.comprehensive_deductible}`);
-    }
+  } else if (auto.uninsured_motorist) {
+    // Legacy field support
+    sections.push(`\n**Uninsured Motorist:** $${auto.uninsured_motorist.toLocaleString()}`);
   }
 
-  // Additional coverages
-  const additionalCoverages: string[] = [];
-  if (auto.uninsured_motorist) {
-    additionalCoverages.push(`Uninsured Motorist: $${auto.uninsured_motorist.toLocaleString()}`);
-  }
+  // Underinsured Motorist (if separate from uninsured)
   if (auto.underinsured_motorist) {
-    additionalCoverages.push(`Underinsured Motorist: $${auto.underinsured_motorist.toLocaleString()}`);
-  }
-  if (auto.medical_payments) {
-    additionalCoverages.push(`Medical Payments: $${auto.medical_payments.toLocaleString()}`);
-  }
-  if (auto.personal_injury_protection) {
-    additionalCoverages.push(`PIP: $${auto.personal_injury_protection.toLocaleString()}`);
-  }
-  if (additionalCoverages.length > 0) {
-    sections.push("\n**Additional Coverage:**");
-    additionalCoverages.forEach(c => sections.push(`- ${c}`));
+    sections.push(`**Underinsured Motorist:** $${auto.underinsured_motorist.toLocaleString()}`);
   }
 
-  // Rental reimbursement
-  if (auto.rental_reimbursement_daily || auto.rental_reimbursement_max) {
-    sections.push("\n**Rental Reimbursement:**");
+  // Medical Payments - show status whether covered or not
+  if (auto.medical_payments_covered !== undefined) {
+    if (auto.medical_payments_covered && auto.medical_payments) {
+      sections.push(`\n**Medical Payments:** $${auto.medical_payments.toLocaleString()}`);
+    } else if (!auto.medical_payments_covered) {
+      sections.push("\n**Medical Payments:** Not covered");
+    }
+  } else if (auto.medical_payments) {
+    sections.push(`\n**Medical Payments:** $${auto.medical_payments.toLocaleString()}`);
+  }
+
+  // Personal Injury Protection
+  if (auto.personal_injury_protection) {
+    sections.push(`**PIP:** $${auto.personal_injury_protection.toLocaleString()}`);
+  }
+
+  // Rental Reimbursement - show status whether covered or not
+  if (auto.rental_reimbursement_covered !== undefined) {
+    if (auto.rental_reimbursement_covered) {
+      sections.push("\n**Rental Reimbursement:** Included");
+      if (auto.rental_reimbursement_daily) {
+        sections.push(`- Daily Limit: $${auto.rental_reimbursement_daily}`);
+      }
+      if (auto.rental_reimbursement_max) {
+        sections.push(`- Maximum: $${auto.rental_reimbursement_max}`);
+      }
+    } else {
+      sections.push("\n**Rental Reimbursement:** Not included");
+    }
+  } else if (auto.rental_reimbursement_daily || auto.rental_reimbursement_max) {
+    sections.push("\n**Rental Reimbursement:** Included");
     if (auto.rental_reimbursement_daily) {
       sections.push(`- Daily Limit: $${auto.rental_reimbursement_daily}`);
     }
@@ -504,17 +560,21 @@ function formatAutoInsurance(auto: AutoInsuranceCoverage): string {
     }
   }
 
-  // Roadside assistance
-  if (auto.roadside_assistance) {
-    sections.push("\n**Roadside Assistance:** Yes");
-    if (auto.roadside_details && auto.roadside_details.length > 0) {
-      sections.push(`- Details: ${auto.roadside_details.join("; ")}`);
+  // Roadside Assistance - show status whether included or not
+  if (auto.roadside_assistance !== undefined) {
+    if (auto.roadside_assistance) {
+      sections.push("\n**Roadside Assistance:** Included");
+      if (auto.roadside_details && auto.roadside_details.length > 0) {
+        sections.push(`- Details: ${auto.roadside_details.join("; ")}`);
+      }
+    } else {
+      sections.push("\n**Roadside Assistance:** Not included");
     }
   }
 
-  // Gap coverage
-  if (auto.gap_coverage) {
-    sections.push("\n**Gap Coverage:** Yes");
+  // Gap Coverage - show status whether included or not
+  if (auto.gap_coverage !== undefined) {
+    sections.push(`\n**Gap Coverage:** ${auto.gap_coverage ? "Included" : "Not included"}`);
   }
 
   // Covered vehicles
