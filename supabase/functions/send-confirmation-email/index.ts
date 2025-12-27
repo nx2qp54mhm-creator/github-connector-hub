@@ -180,7 +180,7 @@ serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Policy Pocket <noreply@policypocket.com>",
+        from: "Policy Pocket <noreply@send.policypocket.app>",
         to: [email],
         subject: subject,
         html: html,
