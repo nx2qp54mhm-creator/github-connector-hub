@@ -18,7 +18,7 @@ export default function ConfirmEmail() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
-  const clearCoverageStore = useCoverageStore((state) => state.clearStore);
+  const initializeForUser = useCoverageStore((state) => state.initializeForUser);
 
   useEffect(() => {
     const handleEmailConfirmation = async () => {
@@ -33,7 +33,7 @@ export default function ConfirmEmail() {
 
       if (tokenHash && type === "signup") {
         // Handle PKCE confirmation flow
-        const { error } = await supabase.auth.verifyOtp({
+        const { data, error } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type: "signup",
         });
@@ -43,9 +43,10 @@ export default function ConfirmEmail() {
           setErrorMessage(error.message);
           setState("error");
         } else {
-          // Clear any existing data from previous users on new signup
-          clearCoverageStore();
-          localStorage.removeItem("covered-storage");
+          // Initialize store for this new user (will load empty data for new user)
+          if (data.user?.id) {
+            initializeForUser(data.user.id);
+          }
 
           setState("success");
           toast({
@@ -75,7 +76,7 @@ export default function ConfirmEmail() {
         }
       } else if (accessToken && refreshToken) {
         // Handle implicit flow (older Supabase versions)
-        const { error } = await supabase.auth.setSession({
+        const { data, error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
@@ -85,9 +86,10 @@ export default function ConfirmEmail() {
           setErrorMessage(error.message);
           setState("error");
         } else {
-          // Clear any existing data from previous users
-          clearCoverageStore();
-          localStorage.removeItem("covered-storage");
+          // Initialize store for this user
+          if (data.user?.id) {
+            initializeForUser(data.user.id);
+          }
 
           setState("success");
           toast({
@@ -115,7 +117,7 @@ export default function ConfirmEmail() {
     };
 
     handleEmailConfirmation();
-  }, [navigate, searchParams, toast, clearCoverageStore]);
+  }, [navigate, searchParams, toast, initializeForUser]);
 
   const handleResendConfirmation = async () => {
     if (!userEmail) {

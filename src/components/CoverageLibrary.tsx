@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import { X, CreditCard, FileText, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,18 +18,7 @@ export function CoverageLibrary() {
     removeCard,
     removePolicy,
     removePlan,
-    validateAndClearIfNeeded
   } = useCoverageStore();
-
-  // Validate store data belongs to current user on mount and when user changes
-  useEffect(() => {
-    if (user?.id) {
-      validateAndClearIfNeeded(user.id);
-    }
-  }, [user?.id, validateAndClearIfNeeded]);
-
-  // If there's a user mismatch, don't show any data
-  const hasValidData = !user || !storeUserId || storeUserId === user.id;
 
   // Memoize card lookups to prevent recalculation on every render
   const cards = useMemo(() =>
@@ -37,8 +26,12 @@ export function CoverageLibrary() {
     [selectedCards]
   );
 
-  // Show empty state if no data or if data doesn't belong to current user
+  // Only show data if store is initialized for current user
+  const hasValidData = user && storeUserId === user.id;
+
+  // Show empty state if no data or store not initialized for this user
   const isEmpty = !hasValidData || (selectedCards.length === 0 && uploadedPolicies.length === 0 && addedPlans.length === 0);
+
   const formatDate = (iso: string): string => {
     const date = new Date(iso);
     return `${date.toLocaleDateString()} at ${date.toLocaleTimeString([], {
@@ -46,6 +39,7 @@ export function CoverageLibrary() {
       minute: '2-digit'
     })}`;
   };
+
   return <Card className="border border-border shadow-soft overflow-hidden">
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">

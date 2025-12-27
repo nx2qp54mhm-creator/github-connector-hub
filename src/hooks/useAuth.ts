@@ -10,8 +10,8 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
   const previousUserIdRef = useRef<string | null>(null);
 
+  const initializeForUser = useCoverageStore((state) => state.initializeForUser);
   const clearCoverageStore = useCoverageStore((state) => state.clearStore);
-  const validateAndClearIfNeeded = useCoverageStore((state) => state.validateAndClearIfNeeded);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -24,24 +24,24 @@ export function useAuth() {
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Handle logout
+        // Handle logout - clear in-memory state but preserve localStorage data
         if (event === "SIGNED_OUT") {
+          // Don't delete user's localStorage data - just clear in-memory state
           clearCoverageStore();
           queryClient.clear();
-          localStorage.removeItem("covered-storage");
           previousUserIdRef.current = null;
           return;
         }
 
-        // Handle sign in or user change
-        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+        // Handle sign in or user change - load user's data from localStorage
+        if (newUserId && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED" || event === "INITIAL_SESSION")) {
           // If user changed, clear React Query cache
-          if (newUserId && previousUserId && newUserId !== previousUserId) {
+          if (previousUserId && newUserId !== previousUserId) {
             queryClient.clear();
           }
 
-          // Validate store data belongs to current user
-          validateAndClearIfNeeded(newUserId);
+          // Initialize store with this user's data from localStorage
+          initializeForUser(newUserId);
           previousUserIdRef.current = newUserId;
         }
       }
@@ -53,21 +53,22 @@ export function useAuth() {
       setSession(session);
       setUser(session?.user ?? null);
 
-      // Validate store data on initial load
-      validateAndClearIfNeeded(userId);
-      previousUserIdRef.current = userId;
+      // Initialize store for the current user
+      if (userId) {
+        initializeForUser(userId);
+        previousUserIdRef.current = userId;
+      }
 
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, [clearCoverageStore, validateAndClearIfNeeded, queryClient]);
+  }, [initializeForUser, clearCoverageStore, queryClient]);
 
   const signOut = async () => {
-    // Clear all user data before signing out
+    // Clear in-memory state (but localStorage data persists for next login)
     clearCoverageStore();
     queryClient.clear();
-    localStorage.removeItem("covered-storage");
     previousUserIdRef.current = null;
     await supabase.auth.signOut();
   };
