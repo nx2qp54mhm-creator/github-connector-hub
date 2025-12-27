@@ -16,6 +16,7 @@ interface CoverageState {
   addPlan: (planId: string) => void;
   removePlan: (planId: string) => void;
   removeCard: (cardId: string) => void;
+  clearStore: () => void;
 
   // Computed
   getSourcesForCategory: (categoryId: CategoryId) => { cards: ReturnType<typeof getCardById>[]; policies: Policy[]; plans: CommonPlan[] };
@@ -80,6 +81,15 @@ export const useCoverageStore = create<CoverageState>()(
           selectedCards: state.selectedCards.filter(id => id !== cardId),
           lastUpdated: new Date().toISOString(),
         }));
+      },
+
+      clearStore: () => {
+        set({
+          selectedCards: [],
+          uploadedPolicies: [],
+          addedPlans: [],
+          lastUpdated: null,
+        });
       },
 
       getSourcesForCategory: (categoryId: CategoryId) => {
