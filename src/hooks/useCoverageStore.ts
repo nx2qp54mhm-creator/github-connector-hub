@@ -4,12 +4,15 @@ import { Policy, CommonPlan, CategoryId } from "@/types/coverage";
 import { getCardsForCategory, getCardById, commonPlans } from "@/data/cardDatabase";
 
 interface CoverageState {
+  userId: string | null;
   selectedCards: string[];
   uploadedPolicies: Policy[];
   addedPlans: CommonPlan[];
   lastUpdated: string | null;
 
   // Actions
+  setUserId: (userId: string | null) => void;
+  validateAndClearIfNeeded: (currentUserId: string | null) => void;
   toggleCard: (cardId: string) => void;
   addPolicy: (policy: Policy) => void;
   removePolicy: (policyId: string) => void;
@@ -27,10 +30,64 @@ interface CoverageState {
 export const useCoverageStore = create<CoverageState>()(
   persist(
     (set, get) => ({
+      userId: null,
       selectedCards: [],
       uploadedPolicies: [],
       addedPlans: [],
       lastUpdated: null,
+
+      setUserId: (userId: string | null) => {
+        set({ userId });
+      },
+
+      validateAndClearIfNeeded: (currentUserId: string | null) => {
+        const state = get();
+
+        // If no current user, clear everything
+        if (!currentUserId) {
+          if (state.selectedCards.length > 0 || state.uploadedPolicies.length > 0 || state.addedPlans.length > 0) {
+            set({
+              userId: null,
+              selectedCards: [],
+              uploadedPolicies: [],
+              addedPlans: [],
+              lastUpdated: null,
+            });
+          }
+          return;
+        }
+
+        // If store has data from a different user, clear it
+        if (state.userId && state.userId !== currentUserId) {
+          console.log("User mismatch detected, clearing store. Store user:", state.userId, "Current user:", currentUserId);
+          set({
+            userId: currentUserId,
+            selectedCards: [],
+            uploadedPolicies: [],
+            addedPlans: [],
+            lastUpdated: null,
+          });
+          return;
+        }
+
+        // If store has no userId but has data, it's from an old session - clear it
+        if (!state.userId && (state.selectedCards.length > 0 || state.uploadedPolicies.length > 0 || state.addedPlans.length > 0)) {
+          console.log("Store has data but no userId, clearing store");
+          set({
+            userId: currentUserId,
+            selectedCards: [],
+            uploadedPolicies: [],
+            addedPlans: [],
+            lastUpdated: null,
+          });
+          return;
+        }
+
+        // Update userId if not set
+        if (!state.userId) {
+          set({ userId: currentUserId });
+        }
+      },
 
       toggleCard: (cardId: string) => {
         set((state) => {
@@ -85,6 +142,7 @@ export const useCoverageStore = create<CoverageState>()(
 
       clearStore: () => {
         set({
+          userId: null,
           selectedCards: [],
           uploadedPolicies: [],
           addedPlans: [],

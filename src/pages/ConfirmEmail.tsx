@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, CheckCircle2, XCircle, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useCoverageStore } from "@/hooks/useCoverageStore";
 import policyPocketLogo from "@/assets/policy-pocket-logo.jpeg";
 
 type ConfirmationState = "verifying" | "success" | "error" | "pending";
@@ -17,6 +18,7 @@ export default function ConfirmEmail() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+  const clearCoverageStore = useCoverageStore((state) => state.clearStore);
 
   useEffect(() => {
     const handleEmailConfirmation = async () => {
@@ -41,6 +43,10 @@ export default function ConfirmEmail() {
           setErrorMessage(error.message);
           setState("error");
         } else {
+          // Clear any existing data from previous users on new signup
+          clearCoverageStore();
+          localStorage.removeItem("covered-storage");
+
           setState("success");
           toast({
             title: "Email confirmed!",
@@ -79,6 +85,10 @@ export default function ConfirmEmail() {
           setErrorMessage(error.message);
           setState("error");
         } else {
+          // Clear any existing data from previous users
+          clearCoverageStore();
+          localStorage.removeItem("covered-storage");
+
           setState("success");
           toast({
             title: "Email confirmed!",
@@ -105,7 +115,7 @@ export default function ConfirmEmail() {
     };
 
     handleEmailConfirmation();
-  }, [navigate, searchParams, toast]);
+  }, [navigate, searchParams, toast, clearCoverageStore]);
 
   const handleResendConfirmation = async () => {
     if (!userEmail) {
