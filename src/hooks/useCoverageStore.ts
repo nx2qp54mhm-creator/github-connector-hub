@@ -1,45 +1,9 @@
 import { create } from "zustand";
-import { persist, createJSONStorage, StateStorage } from "zustand/middleware";
 import { Policy, CommonPlan, CategoryId } from "@/types/coverage";
 import { getCardsForCategory, getCardById, commonPlans } from "@/data/cardDatabase";
 
-// Custom storage that uses user-namespaced keys
-const createUserStorage = (): StateStorage => {
-  let currentUserId: string | null = null;
-
-  const getStorageKey = () => {
-    if (currentUserId) {
-      return `covered-storage-${currentUserId}`;
-    }
-    return "covered-storage-temp"; // Temporary storage for unauthenticated state
-  };
-
-  return {
-    getItem: (name: string): string | null => {
-      // Use the user-specific key
-      const key = getStorageKey();
-      const value = localStorage.getItem(key);
-      return value;
-    },
-    setItem: (name: string, value: string): void => {
-      const key = getStorageKey();
-      if (currentUserId) {
-        localStorage.setItem(key, value);
-      }
-      // Don't persist to temp storage - only persist for authenticated users
-    },
-    removeItem: (name: string): void => {
-      const key = getStorageKey();
-      localStorage.removeItem(key);
-    },
-  };
-};
-
-// Singleton storage instance
-const userStorage = createUserStorage();
-
-// Function to update the current user ID in storage (called from useAuth)
-let setStorageUserId: (userId: string | null) => void = () => {};
+// Storage version - increment this to force clearing old data formats
+const STORAGE_VERSION = 2;
 
 interface CoverageState {
   userId: string | null;
@@ -71,8 +35,13 @@ const loadUserData = (userId: string): Partial<CoverageState> => {
     const stored = localStorage.getItem(key);
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (parsed.state && parsed.state.userId === userId) {
+      // Verify version matches and userId matches
+      if (parsed.version === STORAGE_VERSION && parsed.state && parsed.state.userId === userId) {
         return parsed.state;
+      } else {
+        // Version mismatch or userId mismatch - clear this corrupted/old data
+        console.log(`Clearing outdated storage for user ${userId} (version: ${parsed.version}, expected: ${STORAGE_VERSION})`);
+        localStorage.removeItem(key);
       }
     }
   } catch (e) {
@@ -99,7 +68,7 @@ const saveUserData = (userId: string, state: Partial<CoverageState>) => {
         addedPlans: state.addedPlans,
         lastUpdated: state.lastUpdated,
       },
-      version: 0,
+      version: STORAGE_VERSION,
     };
     localStorage.setItem(key, JSON.stringify(data));
   } catch (e) {
@@ -294,9 +263,40 @@ export const useCoverageStore = create<CoverageState>()(
   })
 );
 
-// Clean up old global storage key on module load
+// Clean up old/legacy storage keys on module load
 if (typeof window !== 'undefined') {
-  // Remove the old non-namespaced storage to prevent data leakage
-  localStorage.removeItem("covered-storage");
-  localStorage.removeItem("covered-storage-temp");
+  // Remove old non-namespaced storage keys to prevent data leakage
+  const legacyKeys = [
+    "covered-storage",
+    "covered-storage-temp",
+    "coverage-storage",  // Possible old key variant
+  ];
+
+  legacyKeys.forEach(key => {
+    if (localStorage.getItem(key)) {
+      console.log(`Removing legacy storage key: ${key}`);
+      localStorage.removeItem(key);
+    }
+  });
+
+  // Also check for any user-specific keys with old version format and clean them
+  const allKeys = Object.keys(localStorage);
+  allKeys.forEach(key => {
+    if (key.startsWith("covered-storage-") && key !== "covered-storage-temp") {
+      try {
+        const data = localStorage.getItem(key);
+        if (data) {
+          const parsed = JSON.parse(data);
+          if (parsed.version !== STORAGE_VERSION) {
+            console.log(`Removing outdated versioned storage: ${key} (version ${parsed.version})`);
+            localStorage.removeItem(key);
+          }
+        }
+      } catch (e) {
+        // If we can't parse it, it's corrupted - remove it
+        console.log(`Removing corrupted storage: ${key}`);
+        localStorage.removeItem(key);
+      }
+    }
+  });
 }
