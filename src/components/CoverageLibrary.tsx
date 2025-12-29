@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { X, CreditCard, FileText, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCoverageStore } from "@/hooks/useCoverageStore";
 import { getCardById } from "@/data/cardDatabase";
 export function CoverageLibrary() {
@@ -43,8 +42,7 @@ export function CoverageLibrary() {
         </div>
       </div>
 
-      <ScrollArea className="max-h-56">
-        <div className="p-3 space-y-4">
+      <div className="p-3 space-y-4">
           {/* Credit Cards */}
           {cards.length > 0 && <div className="space-y-1">
               <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide px-1">
@@ -108,7 +106,6 @@ export function CoverageLibrary() {
               No coverage added yet
             </p>}
         </div>
-      </ScrollArea>
 
       {/* Footer */}
       <div className="px-4 py-2 border-t border-border">
