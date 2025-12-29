@@ -187,6 +187,78 @@ export type Database = {
         }
         Relationships: []
       }
+      user_plans: {
+        Row: {
+          created_at: string | null
+          id: string
+          plan_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          plan_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          plan_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_policies: {
+        Row: {
+          categories: Json
+          created_at: string | null
+          filename: string
+          id: string
+          name: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          categories?: Json
+          created_at?: string | null
+          filename: string
+          id?: string
+          name: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          categories?: Json
+          created_at?: string | null
+          filename?: string
+          id?: string
+          name?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_selected_cards: {
+        Row: {
+          card_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
