@@ -43,7 +43,9 @@ export function useOnboarding() {
     navigate("/");
   };
 
-  const exitOnboarding = () => {
+  const exitOnboarding = async () => {
+    // Mark onboarding as complete so user isn't redirected back
+    await updateProfile({ onboarding_completed: true });
     navigate("/");
   };
 
