@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
+import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,22 @@ const App = () => (
             element={
               <PrivateRoute>
                 <Profile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/onboarding"
+            element={
+              <PrivateRoute skipOnboardingRedirect>
+                <Onboarding />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/onboarding/:step"
+            element={
+              <PrivateRoute skipOnboardingRedirect>
+                <Onboarding />
               </PrivateRoute>
             }
           />

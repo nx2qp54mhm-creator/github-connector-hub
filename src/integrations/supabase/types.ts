@@ -169,6 +169,8 @@ export type Database = {
           has_health_insurance: boolean | null
           id: string
           name: string | null
+          onboarding_completed: boolean | null
+          onboarding_step: number | null
           updated_at: string
         }
         Insert: {
@@ -176,6 +178,8 @@ export type Database = {
           has_health_insurance?: boolean | null
           id: string
           name?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
           updated_at?: string
         }
         Update: {
@@ -183,6 +187,8 @@ export type Database = {
           has_health_insurance?: boolean | null
           id?: string
           name?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
           updated_at?: string
         }
         Relationships: []

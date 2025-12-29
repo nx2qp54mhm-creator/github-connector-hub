@@ -6,6 +6,8 @@ export interface Profile {
   id: string;
   name: string | null;
   has_health_insurance: boolean | null;
+  onboarding_completed: boolean | null;
+  onboarding_step: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -42,7 +44,12 @@ export function useProfile() {
     setLoading(false);
   };
 
-  const updateProfile = async (updates: { name?: string | null; has_health_insurance?: boolean | null }) => {
+  const updateProfile = async (updates: {
+    name?: string | null;
+    has_health_insurance?: boolean | null;
+    onboarding_completed?: boolean | null;
+    onboarding_step?: number | null;
+  }) => {
     if (!user) return { error: new Error("Not authenticated") };
 
     const { error } = await supabase
