@@ -12,17 +12,11 @@ import { toast } from "@/hooks/use-toast";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const { profile, loading: profileLoading, updateProfile } = useProfile();
   const [name, setName] = useState("");
   const [hasHealthInsurance, setHasHealthInsurance] = useState<string>("");
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/auth");
-    }
-  }, [user, authLoading, navigate]);
 
   useEffect(() => {
     if (profile) {
@@ -40,7 +34,7 @@ export default function Profile() {
   const handleSave = async () => {
     setSaving(true);
     const healthValue = hasHealthInsurance === "yes" ? true : hasHealthInsurance === "no" ? false : null;
-    const { error } = await updateProfile({ 
+    const { error } = await updateProfile({
       name: name.trim() || null,
       has_health_insurance: healthValue,
     });
@@ -60,7 +54,7 @@ export default function Profile() {
     }
   };
 
-  if (authLoading || profileLoading) {
+  if (profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
