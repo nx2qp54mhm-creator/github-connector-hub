@@ -78,7 +78,7 @@ export default function Profile() {
         title: "Account deleted",
         description: "Your account has been permanently deleted.",
       });
-      navigate("/");
+      navigate("/auth");
     } else {
       toast({
         title: "Error",
