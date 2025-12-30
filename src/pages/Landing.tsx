@@ -269,27 +269,6 @@ export default function Landing() {
                 ))}
               </motion.ul>
             </motion.div>
-
-            <motion.div 
-              className="bg-card border border-border rounded-2xl p-8 shadow-elegant"
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="text-center mb-6">
-                <p className="text-sm text-muted-foreground mb-2">Did you know?</p>
-                <p className="text-4xl md:text-5xl font-bold text-primary mb-2">$500+</p>
-                <p className="text-muted-foreground">
-                  Average value of unused credit card benefits per year
-                </p>
-              </div>
-              <div className="border-t border-border pt-6">
-                <p className="text-center text-sm text-muted-foreground">
-                  From rental car insurance to purchase protection, most cardholders never claim benefits they're entitled to.
-                </p>
-              </div>
-            </motion.div>
           </div>
         </div>
       </section>
