@@ -73,19 +73,23 @@ export default function Landing() {
                 <p className="text-lg md:text-xl text-muted-foreground max-w-xl">Stop juggling insurance policies and hidden credit card benefits. Policy Pocket brings everything together so you can see what you're protected against and where you need coverage.</p>
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                {coverageTypes.map(type => <div key={type.label} className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-full text-sm text-muted-foreground">
-                    <type.icon className="h-4 w-4 text-primary" />
+              <div className="flex flex-wrap gap-2">
+                {coverageTypes.map(type => (
+                  <div key={type.label} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-card border border-border rounded-full text-xs text-muted-foreground">
+                    <type.icon className="h-3.5 w-3.5 text-primary" />
                     {type.label}
-                  </div>)}
+                  </div>
+                ))}
               </div>
 
-              <Link to="/auth">
-                <Button size="lg" className="shadow-primary-glow">
-                  Get Started Free
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+              <div className="pt-2">
+                <Link to="/auth">
+                  <Button size="lg" className="shadow-primary-glow">
+                    Get Started Free
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
 
             {/* Hero Visual */}
