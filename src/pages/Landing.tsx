@@ -3,54 +3,44 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, CreditCard, Car, Home, Plane, Smartphone, ChevronRight, Check } from "lucide-react";
 import policyPocketLogo from "@/assets/policy-pocket-logo.jpeg";
-
-const features = [
-  {
-    icon: Shield,
-    title: "Unified Coverage View",
-    description: "See all your insurance policies, credit card benefits, and protection plans in one organized dashboard."
-  },
-  {
-    icon: CreditCard,
-    title: "Hidden Benefits Discovery",
-    description: "Uncover valuable protections you already have through your credit cards—travel insurance, purchase protection, and more."
-  },
-  {
-    icon: Smartphone,
-    title: "Smart Coverage Analysis",
-    description: "Get AI-powered insights about gaps in your coverage and recommendations to optimize your protection."
-  }
-];
-
-const coverageTypes = [
-  { icon: Plane, label: "Travel Protection" },
-  { icon: CreditCard, label: "Purchase Coverage" },
-  { icon: Car, label: "Auto Insurance" },
-  { icon: Home, label: "Home/Renters" },
-  { icon: Smartphone, label: "Device Protection" },
-];
-
-const benefits = [
-  "Track all your insurance policies in one place",
-  "Discover credit card benefits you never knew you had",
-  "Never miss a claim opportunity again",
-  "Compare coverage across multiple sources",
-  "Get personalized coverage recommendations"
-];
-
+const features = [{
+  icon: Shield,
+  title: "Unified Coverage View",
+  description: "See all your insurance policies, credit card benefits, and protection plans in one organized dashboard."
+}, {
+  icon: CreditCard,
+  title: "Hidden Benefits Discovery",
+  description: "Uncover valuable protections you already have through your credit cards—travel insurance, purchase protection, and more."
+}, {
+  icon: Smartphone,
+  title: "Smart Coverage Analysis",
+  description: "Get AI-powered insights about gaps in your coverage and recommendations to optimize your protection."
+}];
+const coverageTypes = [{
+  icon: Plane,
+  label: "Travel Protection"
+}, {
+  icon: CreditCard,
+  label: "Purchase Coverage"
+}, {
+  icon: Car,
+  label: "Auto Insurance"
+}, {
+  icon: Home,
+  label: "Home/Renters"
+}, {
+  icon: Smartphone,
+  label: "Device Protection"
+}];
+const benefits = ["Track all your insurance policies in one place", "Discover credit card benefits you never knew you had", "Never miss a claim opportunity again", "Compare coverage across multiple sources", "Get personalized coverage recommendations"];
 export default function Landing() {
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <img
-                src={policyPocketLogo}
-                alt="Policy Pocket logo"
-                className="h-10 w-10 object-contain rounded-lg"
-              />
+              <img src={policyPocketLogo} alt="Policy Pocket logo" className="h-10 w-10 object-contain rounded-lg" />
               <span className="font-display text-xl font-bold text-foreground">Policy Pocket</span>
             </div>
             <div className="flex items-center gap-3">
@@ -80,22 +70,14 @@ export default function Landing() {
                   All Your Policies,{" "}
                   <span className="text-primary">in One Place</span>
                 </h1>
-                <p className="text-lg md:text-xl text-muted-foreground max-w-xl">
-                  Stop juggling insurance policies and missing hidden credit card benefits.
-                  Policy Pocket brings everything together so you always know what you're protected against.
-                </p>
+                <p className="text-lg md:text-xl text-muted-foreground max-w-xl">Stop juggling insurance policies and hidden credit card benefits. Policy Pocket brings everything together so you can see what you're protected against and where you need coverage.</p>
               </div>
 
               <div className="flex flex-wrap gap-3">
-                {coverageTypes.map((type) => (
-                  <div
-                    key={type.label}
-                    className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-full text-sm text-muted-foreground"
-                  >
+                {coverageTypes.map(type => <div key={type.label} className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-full text-sm text-muted-foreground">
                     <type.icon className="h-4 w-4 text-primary" />
                     {type.label}
-                  </div>
-                ))}
+                  </div>)}
               </div>
 
               <Link to="/auth">
@@ -122,25 +104,27 @@ export default function Landing() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {[
-                    { label: "Travel Insurance", status: "Active", source: "Chase Sapphire" },
-                    { label: "Auto Insurance", status: "Expires Soon", source: "GEICO" },
-                    { label: "Cell Phone Protection", status: "Active", source: "Visa Signature" },
-                  ].map((item) => (
-                    <div key={item.label} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  {[{
+                  label: "Travel Insurance",
+                  status: "Active",
+                  source: "Chase Sapphire"
+                }, {
+                  label: "Auto Insurance",
+                  status: "Expires Soon",
+                  source: "GEICO"
+                }, {
+                  label: "Cell Phone Protection",
+                  status: "Active",
+                  source: "Visa Signature"
+                }].map(item => <div key={item.label} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <div>
                         <p className="font-medium text-sm text-foreground">{item.label}</p>
                         <p className="text-xs text-muted-foreground">{item.source}</p>
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        item.status === "Active"
-                          ? "bg-success-light text-success-foreground"
-                          : "bg-warning-light text-warning-foreground"
-                      }`}>
+                      <span className={`text-xs px-2 py-1 rounded-full ${item.status === "Active" ? "bg-success-light text-success-foreground" : "bg-warning-light text-warning-foreground"}`}>
                         {item.status}
                       </span>
-                    </div>
-                  ))}
+                    </div>)}
                 </CardContent>
               </Card>
             </div>
@@ -161,8 +145,7 @@ export default function Landing() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {features.map((feature) => (
-              <Card key={feature.title} className="border-border/50 hover:shadow-elegant transition-shadow">
+            {features.map(feature => <Card key={feature.title} className="border-border/50 hover:shadow-elegant transition-shadow">
                 <CardHeader>
                   <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                     <feature.icon className="h-6 w-6 text-primary" />
@@ -172,8 +155,7 @@ export default function Landing() {
                 <CardContent>
                   <p className="text-muted-foreground">{feature.description}</p>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
       </section>
@@ -191,14 +173,12 @@ export default function Landing() {
                 Policy Pocket changes that.
               </p>
               <ul className="space-y-4">
-                {benefits.map((benefit) => (
-                  <li key={benefit} className="flex items-start gap-3">
+                {benefits.map(benefit => <li key={benefit} className="flex items-start gap-3">
                     <div className="h-6 w-6 rounded-full bg-success-light flex items-center justify-center flex-shrink-0 mt-0.5">
                       <Check className="h-4 w-4 text-success-foreground" />
                     </div>
                     <span className="text-foreground">{benefit}</span>
-                  </li>
-                ))}
+                  </li>)}
               </ul>
             </div>
 
@@ -243,11 +223,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img
-                src={policyPocketLogo}
-                alt="Policy Pocket logo"
-                className="h-8 w-8 object-contain rounded-lg"
-              />
+              <img src={policyPocketLogo} alt="Policy Pocket logo" className="h-8 w-8 object-contain rounded-lg" />
               <span className="text-sm text-muted-foreground">© 2025 Policy Pocket. All rights reserved.</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
@@ -258,6 +234,5 @@ export default function Landing() {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 }
