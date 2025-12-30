@@ -24,16 +24,16 @@ const scaleIn = {
 };
 const features = [{
   icon: Shield,
-  title: "Unified Coverage View",
-  description: "See all your insurance policies, credit card benefits, and protection plans in one organized dashboard."
+  title: "All Your Coverage, Organized",
+  description: "Insurance policies, credit card benefits, warranties—everything in one place, organized by what's actually covered, not which company it came from."
 }, {
   icon: CreditCard,
-  title: "Hidden Benefits Discovery",
-  description: "Uncover valuable protections you already have through your credit cards—travel insurance, purchase protection, and more."
+  title: "Instant Answers When You Need Them",
+  description: "\"Am I covered for this rental?\" \"What protection do I have for this purchase?\" Ask in plain English, get clear answers from all your policies at once."
 }, {
   icon: Smartphone,
-  title: "Smart Coverage Analysis",
-  description: "Get AI-powered insights about gaps in your coverage and recommendations to optimize your protection."
+  title: "Discover Protection You're Already Paying For",
+  description: "Most people don't know their credit cards include rental car coverage, purchase protection, and travel insurance. We surface benefits buried in fine print."
 }];
 const coverageTypes = [{
   icon: Plane,
@@ -190,7 +190,7 @@ export default function Landing() {
             variants={fadeInUp}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Discover the Coverage You Already Have
+              Your Coverage Intelligence System
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Policy Pocket helps you understand, organize, and maximize all the protection you already have.
