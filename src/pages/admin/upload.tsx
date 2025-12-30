@@ -171,7 +171,25 @@ export default function AdminUpload() {
       }
 
       toast.success("Guide uploaded successfully", {
-        description: "The AI extraction process will begin shortly.",
+        description: "Starting AI extraction...",
+      });
+
+      // Trigger the extraction Edge Function
+      supabase.functions.invoke("extract-benefits", {
+        body: { documentId: docData.id },
+      }).then((result) => {
+        if (result.error) {
+          console.error("Extraction error:", result.error);
+          toast.error("Extraction failed", {
+            description: result.error.message || "Please try again from the review page.",
+          });
+        } else {
+          toast.success("Extraction completed", {
+            description: "Benefits have been extracted and are ready for review.",
+          });
+        }
+      }).catch((err) => {
+        console.error("Extraction error:", err);
       });
 
       // Navigate to the review page (will show processing status)
