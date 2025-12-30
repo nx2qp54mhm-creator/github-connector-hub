@@ -131,6 +131,62 @@ export function useBenefitExtraction() {
     }
   }, []);
 
+  const deleteDocument = useCallback(async (documentId: string) => {
+    // First get the document to find the file path
+    const { data: document, error: fetchError } = await supabase
+      .from("benefit_guide_documents")
+      .select("file_path")
+      .eq("id", documentId)
+      .single();
+
+    if (fetchError) {
+      throw new Error(`Failed to fetch document: ${fetchError.message}`);
+    }
+
+    // Delete associated extracted benefits
+    const { error: benefitsError } = await supabase
+      .from("extracted_benefits")
+      .delete()
+      .eq("document_id", documentId);
+
+    if (benefitsError) {
+      console.error("Failed to delete benefits:", benefitsError);
+      // Continue anyway - document deletion is more important
+    }
+
+    // Delete the file from storage
+    if (document?.file_path) {
+      const { error: storageError } = await supabase.storage
+        .from("benefit-guides")
+        .remove([document.file_path]);
+
+      if (storageError) {
+        console.error("Failed to delete file from storage:", storageError);
+        // Continue anyway - database cleanup is more important
+      }
+    }
+
+    // Delete the document record
+    const { error: deleteError } = await supabase
+      .from("benefit_guide_documents")
+      .delete()
+      .eq("id", documentId);
+
+    if (deleteError) {
+      throw new Error(`Failed to delete document: ${deleteError.message}`);
+    }
+
+    // Log the deletion
+    await supabase
+      .from("admin_audit_log")
+      .insert({
+        action: "delete_document",
+        entity_type: "benefit_guide_document",
+        entity_id: documentId,
+        details: { file_path: document?.file_path },
+      });
+  }, []);
+
   return {
     ...state,
     startExtraction,
@@ -138,5 +194,6 @@ export function useBenefitExtraction() {
     approveBenefit,
     rejectBenefit,
     updateBenefitData,
+    deleteDocument,
   };
 }

@@ -249,6 +249,20 @@ function calculateOverallConfidence(confidence: Partial<ExtractionConfidence>): 
   return scores.reduce((a, b) => a + b, 0) / scores.length;
 }
 
+// Convert ArrayBuffer to base64 in chunks to avoid stack overflow for large files
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  const CHUNK_SIZE = 8192;
+  let binary = "";
+
+  for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+    const chunk = bytes.subarray(i, Math.min(i + CHUNK_SIZE, bytes.length));
+    binary += String.fromCharCode.apply(null, Array.from(chunk));
+  }
+
+  return btoa(binary);
+}
+
 // ============================================
 // MAIN HANDLER
 // ============================================
@@ -316,9 +330,9 @@ serve(async (req) => {
 
     // Convert PDF to base64 for Claude API
     const arrayBuffer = await fileData.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const base64 = arrayBufferToBase64(arrayBuffer);
 
-    console.log(`PDF downloaded, size: ${arrayBuffer.byteLength} bytes`);
+    console.log(`PDF downloaded and converted, size: ${arrayBuffer.byteLength} bytes, base64 length: ${base64.length}`);
 
     // Call Claude API with PDF document
     const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
@@ -356,17 +370,26 @@ serve(async (req) => {
 
     if (!claudeResponse.ok) {
       const errorText = await claudeResponse.text();
-      console.error("Claude API error:", errorText);
+      console.error("Claude API error:", claudeResponse.status, errorText);
+
+      // Parse error for more details
+      let errorMessage = `Claude API error: ${claudeResponse.status}`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = `Claude API error: ${errorJson.error?.type || claudeResponse.status} - ${errorJson.error?.message || errorText.substring(0, 200)}`;
+      } catch {
+        errorMessage = `Claude API error: ${claudeResponse.status} - ${errorText.substring(0, 200)}`;
+      }
 
       await supabase
         .from("benefit_guide_documents")
         .update({
           processing_status: "failed",
-          error_message: `Claude API error: ${claudeResponse.status}`
+          error_message: errorMessage
         })
         .eq("id", documentId);
 
-      throw new Error(`Claude API error: ${claudeResponse.status}`);
+      throw new Error(errorMessage);
     }
 
     const claudeData = await claudeResponse.json();
@@ -467,11 +490,30 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("Error in extract-benefits:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+    console.error("Error in extract-benefits:", errorMessage, error);
+
+    // Try to update document status to failed if we have the documentId
+    try {
+      const body = await req.clone().json().catch(() => ({}));
+      if (body.documentId && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+        await supabase
+          .from("benefit_guide_documents")
+          .update({
+            processing_status: "failed",
+            error_message: errorMessage.substring(0, 500)
+          })
+          .eq("id", body.documentId);
+      }
+    } catch (updateError) {
+      console.error("Failed to update document status:", updateError);
+    }
+
     return new Response(
       JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : "An unexpected error occurred",
+        error: errorMessage,
       }),
       {
         status: 500,

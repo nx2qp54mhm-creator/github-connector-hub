@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Clock, CheckCircle, AlertCircle, ArrowLeft, RefreshCw, Loader2 } from "lucide-react";
+import { FileText, Clock, CheckCircle, AlertCircle, ArrowLeft, RefreshCw, Loader2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useBenefitExtraction } from "@/hooks/useBenefitExtraction";
@@ -40,9 +40,10 @@ interface ExtractedBenefit {
 
 export default function AdminReview() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const documentId = searchParams.get("document");
   const { user } = useAuth();
-  const { startExtraction, approveBenefit, rejectBenefit, updateBenefitData } = useBenefitExtraction();
+  const { startExtraction, approveBenefit, rejectBenefit, updateBenefitData, deleteDocument } = useBenefitExtraction();
 
   const [document, setDocument] = useState<DocumentInfo | null>(null);
   const [benefits, setBenefits] = useState<ExtractedBenefit[]>([]);
@@ -50,6 +51,7 @@ export default function AdminReview() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   // Fetch document details and extracted benefits
   const fetchDocumentDetails = async (docId: string) => {
@@ -204,6 +206,35 @@ export default function AdminReview() {
     toast.success(`Approved ${pendingBenefits.length} benefits`);
   };
 
+  const handleDelete = async (docId: string, e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    if (!confirm("Are you sure you want to delete this document? This action cannot be undone.")) {
+      return;
+    }
+
+    setIsDeleting(docId);
+    try {
+      await deleteDocument(docId);
+      toast.success("Document deleted successfully");
+
+      // If we're viewing this document, go back to the list
+      if (documentId === docId) {
+        navigate("/admin/review");
+      } else {
+        // Refresh the list
+        await fetchPendingDocuments();
+      }
+    } catch (error) {
+      toast.error("Failed to delete document", {
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -271,17 +302,32 @@ export default function AdminReview() {
                     {document.issuer} - {document.file_name}
                   </CardDescription>
                 </div>
-                <Badge
-                  variant={
-                    document.processing_status === "completed"
-                      ? "default"
-                      : document.processing_status === "failed"
-                      ? "destructive"
-                      : "outline"
-                  }
-                >
-                  {document.processing_status}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant={
+                      document.processing_status === "completed"
+                        ? "default"
+                        : document.processing_status === "failed"
+                        ? "destructive"
+                        : "outline"
+                    }
+                  >
+                    {document.processing_status}
+                  </Badge>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={(e) => handleDelete(document.id, e)}
+                    disabled={isDeleting === document.id}
+                  >
+                    {isDeleting === document.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -400,39 +446,53 @@ export default function AdminReview() {
             {pendingDocuments.length > 0 ? (
               <div className="space-y-3">
                 {pendingDocuments.map((doc) => (
-                  <Link key={doc.id} to={`/admin/review?document=${doc.id}`}>
-                    <Card className="hover:border-primary/50 transition-colors cursor-pointer">
-                      <CardHeader className="py-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <FileText className="h-5 w-5 text-muted-foreground" />
-                            <div>
-                              <CardTitle className="text-base">
-                                {doc.card_name || "Unknown Card"}
-                              </CardTitle>
-                              <CardDescription>
-                                {doc.issuer} - {doc.file_name}
-                              </CardDescription>
-                            </div>
+                  <Card key={doc.id} className="hover:border-primary/50 transition-colors">
+                    <CardHeader className="py-4">
+                      <div className="flex items-center justify-between">
+                        <Link
+                          to={`/admin/review?document=${doc.id}`}
+                          className="flex items-center gap-3 flex-1"
+                        >
+                          <FileText className="h-5 w-5 text-muted-foreground" />
+                          <div>
+                            <CardTitle className="text-base">
+                              {doc.card_name || "Unknown Card"}
+                            </CardTitle>
+                            <CardDescription>
+                              {doc.issuer} - {doc.file_name}
+                            </CardDescription>
                           </div>
-                          <div className="flex items-center gap-2">
-                            {getStatusIcon(doc.processing_status)}
-                            <Badge
-                              variant={
-                                doc.processing_status === "completed"
-                                  ? "default"
-                                  : doc.processing_status === "failed"
-                                  ? "destructive"
-                                  : "outline"
-                              }
-                            >
-                              {doc.processing_status}
-                            </Badge>
-                          </div>
+                        </Link>
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(doc.processing_status)}
+                          <Badge
+                            variant={
+                              doc.processing_status === "completed"
+                                ? "default"
+                                : doc.processing_status === "failed"
+                                ? "destructive"
+                                : "outline"
+                            }
+                          >
+                            {doc.processing_status}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            onClick={(e) => handleDelete(doc.id, e)}
+                            disabled={isDeleting === doc.id}
+                          >
+                            {isDeleting === doc.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
                         </div>
-                      </CardHeader>
-                    </Card>
-                  </Link>
+                      </div>
+                    </CardHeader>
+                  </Card>
                 ))}
               </div>
             ) : (
