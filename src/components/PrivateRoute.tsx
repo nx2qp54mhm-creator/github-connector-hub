@@ -21,9 +21,9 @@ export function PrivateRoute({ children, skipOnboardingRedirect = false }: Priva
     );
   }
 
-  // Redirect to auth if not logged in
+  // Redirect to landing if not logged in
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // Wait for profile to load before checking onboarding
