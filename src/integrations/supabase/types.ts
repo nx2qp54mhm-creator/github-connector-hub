@@ -14,6 +14,173 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          id: string
+          user_id: string | null
+          user_email: string | null
+          action: string
+          entity_type: string
+          entity_id: string | null
+          old_data: Json | null
+          new_data: Json | null
+          change_summary: string | null
+          ip_address: string | null
+          user_agent: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          user_email?: string | null
+          action: string
+          entity_type: string
+          entity_id?: string | null
+          old_data?: Json | null
+          new_data?: Json | null
+          change_summary?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          user_email?: string | null
+          action?: string
+          entity_type?: string
+          entity_id?: string | null
+          old_data?: Json | null
+          new_data?: Json | null
+          change_summary?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      benefit_guide_documents: {
+        Row: {
+          id: string
+          issuer: string
+          card_id: string | null
+          card_name: string | null
+          file_path: string
+          file_name: string
+          file_size: number | null
+          mime_type: string | null
+          guide_version: string | null
+          effective_date: string | null
+          processing_status: string | null
+          error_message: string | null
+          extraction_started_at: string | null
+          extraction_completed_at: string | null
+          uploaded_by: string | null
+          uploaded_at: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          issuer: string
+          card_id?: string | null
+          card_name?: string | null
+          file_path: string
+          file_name: string
+          file_size?: number | null
+          mime_type?: string | null
+          guide_version?: string | null
+          effective_date?: string | null
+          processing_status?: string | null
+          error_message?: string | null
+          extraction_started_at?: string | null
+          extraction_completed_at?: string | null
+          uploaded_by?: string | null
+          uploaded_at?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          issuer?: string
+          card_id?: string | null
+          card_name?: string | null
+          file_path?: string
+          file_name?: string
+          file_size?: number | null
+          mime_type?: string | null
+          guide_version?: string | null
+          effective_date?: string | null
+          processing_status?: string | null
+          error_message?: string | null
+          extraction_started_at?: string | null
+          extraction_completed_at?: string | null
+          uploaded_by?: string | null
+          uploaded_at?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      extracted_benefits: {
+        Row: {
+          id: string
+          document_id: string | null
+          card_id: string
+          benefit_type: string
+          extracted_data: Json
+          confidence_score: number | null
+          requires_review: boolean | null
+          review_notes: string | null
+          source_excerpts: Json | null
+          reviewed_by: string | null
+          reviewed_at: string | null
+          is_approved: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          document_id?: string | null
+          card_id: string
+          benefit_type: string
+          extracted_data: Json
+          confidence_score?: number | null
+          requires_review?: boolean | null
+          review_notes?: string | null
+          source_excerpts?: Json | null
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          is_approved?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          document_id?: string | null
+          card_id?: string
+          benefit_type?: string
+          extracted_data?: Json
+          confidence_score?: number | null
+          requires_review?: boolean | null
+          review_notes?: string | null
+          source_excerpts?: Json | null
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          is_approved?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "extracted_benefits_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "benefit_guide_documents"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       auto_policies: {
         Row: {
           bodily_injury_per_accident: number | null
@@ -168,6 +335,7 @@ export type Database = {
           created_at: string
           has_health_insurance: boolean | null
           id: string
+          is_admin: boolean | null
           name: string | null
           onboarding_completed: boolean | null
           onboarding_step: number | null
@@ -177,6 +345,7 @@ export type Database = {
           created_at?: string
           has_health_insurance?: boolean | null
           id: string
+          is_admin?: boolean | null
           name?: string | null
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
@@ -186,6 +355,7 @@ export type Database = {
           created_at?: string
           has_health_insurance?: boolean | null
           id?: string
+          is_admin?: boolean | null
           name?: string | null
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
@@ -271,6 +441,7 @@ export type Database = {
     }
     Functions: {
       delete_user_account: { Args: never; Returns: undefined }
+      is_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

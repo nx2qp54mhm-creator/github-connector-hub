@@ -6,6 +6,7 @@ export interface Profile {
   id: string;
   name: string | null;
   has_health_insurance: boolean | null;
+  is_admin: boolean | null;
   onboarding_completed: boolean | null;
   onboarding_step: number | null;
   created_at: string;
