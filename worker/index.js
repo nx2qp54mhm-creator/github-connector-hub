@@ -23,9 +23,23 @@ const WORKER_SECRET = process.env.WORKER_SECRET; // For authenticating requests
 
 const PORT = process.env.PORT || 3001;
 
-// Initialize clients
-const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+// Initialize clients lazily to prevent startup crashes
+let anthropic = null;
+let supabase = null;
+
+function getAnthropicClient() {
+  if (!anthropic && ANTHROPIC_API_KEY) {
+    anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+  }
+  return anthropic;
+}
+
+function getSupabaseClient() {
+  if (!supabase && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+    supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  }
+  return supabase;
+}
 
 // ============================================
 // EXTRACTION PROMPT
@@ -192,9 +206,21 @@ app.post('/extract', async (req, res) => {
 });
 
 async function processExtraction(documentId, startTime) {
+  const supabaseClient = getSupabaseClient();
+  const anthropicClient = getAnthropicClient();
+
+  if (!supabaseClient) {
+    console.error('[Worker] Supabase not configured - missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+    return;
+  }
+  if (!anthropicClient) {
+    console.error('[Worker] Anthropic not configured - missing ANTHROPIC_API_KEY');
+    return;
+  }
+
   try {
     // Get document info from database
-    const { data: document, error: docError } = await supabase
+    const { data: document, error: docError } = await supabaseClient
       .from('benefit_guide_documents')
       .select('*')
       .eq('id', documentId)
@@ -205,7 +231,7 @@ async function processExtraction(documentId, startTime) {
     }
 
     // Update status to processing
-    await supabase
+    await supabaseClient
       .from('benefit_guide_documents')
       .update({
         processing_status: 'processing',
@@ -216,7 +242,7 @@ async function processExtraction(documentId, startTime) {
     console.log(`[Worker] Downloading PDF: ${document.file_path}`);
 
     // Download PDF from storage
-    const { data: fileData, error: downloadError } = await supabase.storage
+    const { data: fileData, error: downloadError } = await supabaseClient.storage
       .from('benefit-guides')
       .download(document.file_path);
 
@@ -231,7 +257,7 @@ async function processExtraction(documentId, startTime) {
     console.log(`[Worker] PDF downloaded, size: ${arrayBuffer.byteLength} bytes. Calling Claude API...`);
 
     // Call Claude API with PDF
-    const response = await anthropic.messages.create({
+    const response = await anthropicClient.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 8192,
       system: EXTRACTION_SYSTEM_PROMPT,
@@ -284,7 +310,7 @@ async function processExtraction(documentId, startTime) {
       const confidence = extractionResult.confidence[benefitType] || 0.5;
       const sourceExcerpt = extractionResult.sourceExcerpts?.[benefitType] || null;
 
-      await supabase
+      await supabaseClient
         .from('extracted_benefits')
         .insert({
           document_id: documentId,
@@ -300,7 +326,7 @@ async function processExtraction(documentId, startTime) {
 
     // Update document status to completed
     const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-    await supabase
+    await supabaseClient
       .from('benefit_guide_documents')
       .update({
         processing_status: 'completed',
@@ -310,7 +336,7 @@ async function processExtraction(documentId, startTime) {
       .eq('id', documentId);
 
     // Log the extraction
-    await supabase
+    await supabaseClient
       .from('admin_audit_log')
       .insert({
         action: 'extract_benefits',
@@ -336,13 +362,17 @@ async function processExtraction(documentId, startTime) {
     console.error(`[Worker] Extraction failed for ${documentId}:`, errorMessage);
 
     // Update document status to failed
-    await supabase
-      .from('benefit_guide_documents')
-      .update({
-        processing_status: 'failed',
-        error_message: errorMessage.substring(0, 500),
-      })
-      .eq('id', documentId);
+    try {
+      await supabaseClient
+        .from('benefit_guide_documents')
+        .update({
+          processing_status: 'failed',
+          error_message: errorMessage.substring(0, 500),
+        })
+        .eq('id', documentId);
+    } catch (updateError) {
+      console.error('[Worker] Failed to update document status:', updateError.message);
+    }
   }
 }
 
@@ -354,7 +384,12 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
     version: '1.0.0',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    config: {
+      anthropic: !!ANTHROPIC_API_KEY,
+      supabase: !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY),
+      workerSecret: !!WORKER_SECRET
+    }
   });
 });
 
