@@ -11,8 +11,8 @@ interface BenefitEditorProps {
   benefitType: string;
   extractedData: Record<string, unknown>;
   confidenceScore: number;
-  sourceExcerpt: string | null;
-  reviewStatus: string;
+  sourceExcerpts: string[] | null;
+  isApproved: boolean | null;
   onApprove: (id: string) => Promise<void>;
   onReject: (id: string) => Promise<void>;
   onUpdate: (id: string, data: Record<string, unknown>) => Promise<void>;
@@ -36,8 +36,8 @@ export function BenefitEditor({
   benefitType,
   extractedData,
   confidenceScore,
-  sourceExcerpt,
-  reviewStatus,
+  sourceExcerpts,
+  isApproved,
   onApprove,
   onReject,
   onUpdate,
@@ -79,18 +79,17 @@ export function BenefitEditor({
   };
 
   const getStatusBadge = () => {
-    switch (reviewStatus) {
-      case "approved":
-        return <Badge className="bg-success/10 text-success border-success/30">Approved</Badge>;
-      case "rejected":
-        return <Badge variant="destructive">Rejected</Badge>;
-      default:
-        return <Badge variant="outline">Pending Review</Badge>;
+    if (isApproved === true) {
+      return <Badge className="bg-success/10 text-success border-success/30">Approved</Badge>;
+    } else if (isApproved === false) {
+      return <Badge variant="destructive">Rejected</Badge>;
+    } else {
+      return <Badge variant="outline">Pending Review</Badge>;
     }
   };
 
   return (
-    <Card className={reviewStatus === "approved" ? "border-success/30" : reviewStatus === "rejected" ? "border-destructive/30" : ""}>
+    <Card className={isApproved === true ? "border-success/30" : isApproved === false ? "border-destructive/30" : ""}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>
@@ -102,7 +101,7 @@ export function BenefitEditor({
               Confidence: <ConfidenceBadge score={confidenceScore} size="sm" />
             </CardDescription>
           </div>
-          {reviewStatus === "pending" && (
+          {isApproved === null && (
             <div className="flex gap-2">
               <Button
                 size="sm"
@@ -169,7 +168,7 @@ export function BenefitEditor({
           </pre>
         )}
 
-        {sourceExcerpt && (
+        {sourceExcerpts && sourceExcerpts.length > 0 && (
           <div className="space-y-2">
             <Button
               variant="ghost"
@@ -177,11 +176,13 @@ export function BenefitEditor({
               onClick={() => setShowSource(!showSource)}
               className="text-xs"
             >
-              {showSource ? "Hide" : "Show"} Source Excerpt
+              {showSource ? "Hide" : "Show"} Source Excerpt{sourceExcerpts.length > 1 ? "s" : ""}
             </Button>
             {showSource && (
-              <div className="bg-muted/30 rounded-lg p-3 text-xs text-muted-foreground border-l-2 border-primary/30">
-                <p className="whitespace-pre-wrap">{sourceExcerpt}</p>
+              <div className="bg-muted/30 rounded-lg p-3 text-xs text-muted-foreground border-l-2 border-primary/30 space-y-2">
+                {sourceExcerpts.map((excerpt, idx) => (
+                  <p key={idx} className="whitespace-pre-wrap">{excerpt}</p>
+                ))}
               </div>
             )}
           </div>

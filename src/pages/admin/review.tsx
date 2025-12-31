@@ -31,9 +31,9 @@ interface ExtractedBenefit {
   benefit_type: string;
   extracted_data: Record<string, unknown>;
   confidence_score: number;
-  source_excerpt: string | null;
+  source_excerpts: string[] | null;
   requires_review: boolean;
-  review_status: string;
+  is_approved: boolean | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
   created_at: string;
@@ -70,7 +70,7 @@ export default function AdminReview() {
     setDocument(docData);
 
     // Fetch extracted benefits if processing is complete
-    if (docData.processing_status === "completed") {
+    if (docData.processing_status === "completed" || docData.processing_status === "extracted") {
       const { data: benefitsData, error: benefitsError } = await supabase
         .from("extracted_benefits")
         .select("*")
@@ -88,7 +88,7 @@ export default function AdminReview() {
     const { data, error } = await supabase
       .from("benefit_guide_documents")
       .select("*")
-      .in("processing_status", ["pending", "processing", "completed"])
+      .in("processing_status", ["pending", "processing", "completed", "extracted"])
       .order("created_at", { ascending: false })
       .limit(10);
 
@@ -165,7 +165,7 @@ export default function AdminReview() {
     try {
       await approveBenefit(benefitId, user.id);
       setBenefits((prev) =>
-        prev.map((b) => (b.id === benefitId ? { ...b, review_status: "approved" } : b))
+        prev.map((b) => (b.id === benefitId ? { ...b, is_approved: true } : b))
       );
       toast.success("Benefit approved");
     } catch (error) {
@@ -178,7 +178,7 @@ export default function AdminReview() {
     try {
       await rejectBenefit(benefitId, user.id);
       setBenefits((prev) =>
-        prev.map((b) => (b.id === benefitId ? { ...b, review_status: "rejected" } : b))
+        prev.map((b) => (b.id === benefitId ? { ...b, is_approved: false } : b))
       );
       toast.success("Benefit rejected");
     } catch (error) {
@@ -200,7 +200,7 @@ export default function AdminReview() {
 
   const handleApproveAll = async () => {
     if (!user) return;
-    const pendingBenefits = benefits.filter((b) => b.review_status === "pending");
+    const pendingBenefits = benefits.filter((b) => b.is_approved === null);
     for (const benefit of pendingBenefits) {
       await handleApprove(benefit.id);
     }
@@ -247,6 +247,7 @@ export default function AdminReview() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
+      case "extracted":
         return <CheckCircle className="h-4 w-4 text-success" />;
       case "processing":
         return <Clock className="h-4 w-4 text-warning animate-pulse" />;
@@ -257,7 +258,7 @@ export default function AdminReview() {
     }
   };
 
-  const pendingReviewCount = benefits.filter((b) => b.review_status === "pending").length;
+  const pendingReviewCount = benefits.filter((b) => b.is_approved === null).length;
   const overallConfidence =
     benefits.length > 0
       ? benefits.reduce((sum, b) => sum + (b.confidence_score || 0), 0) / benefits.length
@@ -306,7 +307,7 @@ export default function AdminReview() {
                 <div className="flex items-center gap-2">
                   <Badge
                     variant={
-                      document.processing_status === "completed"
+                      document.processing_status === "completed" || document.processing_status === "extracted"
                         ? "default"
                         : document.processing_status === "failed"
                         ? "destructive"
@@ -371,7 +372,7 @@ export default function AdminReview() {
                 </div>
               )}
 
-              {document.processing_status === "completed" && benefits.length > 0 && (
+              {(document.processing_status === "completed" || document.processing_status === "extracted") && benefits.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="p-3 bg-muted/50 rounded-lg">
                     <p className="text-sm text-muted-foreground">Benefits Extracted</p>
@@ -393,7 +394,7 @@ export default function AdminReview() {
           </Card>
 
           {/* Extracted benefits */}
-          {document.processing_status === "completed" && benefits.length > 0 && (
+          {(document.processing_status === "completed" || document.processing_status === "extracted") && benefits.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">Extracted Benefits</h2>
@@ -413,8 +414,8 @@ export default function AdminReview() {
                     benefitType={benefit.benefit_type}
                     extractedData={benefit.extracted_data}
                     confidenceScore={benefit.confidence_score}
-                    sourceExcerpt={benefit.source_excerpt}
-                    reviewStatus={benefit.review_status}
+                    sourceExcerpts={benefit.source_excerpts}
+                    isApproved={benefit.is_approved}
                     onApprove={handleApprove}
                     onReject={handleReject}
                     onUpdate={handleUpdate}
@@ -430,7 +431,7 @@ export default function AdminReview() {
             </div>
           )}
 
-          {document.processing_status === "completed" && benefits.length === 0 && (
+          {(document.processing_status === "completed" || document.processing_status === "extracted") && benefits.length === 0 && (
             <Card>
               <CardContent className="p-8 text-center">
                 <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
@@ -474,7 +475,7 @@ export default function AdminReview() {
                           {getStatusIcon(doc.processing_status)}
                           <Badge
                             variant={
-                              doc.processing_status === "completed"
+                              doc.processing_status === "completed" || doc.processing_status === "extracted"
                                 ? "default"
                                 : doc.processing_status === "failed"
                                 ? "destructive"

@@ -11,7 +11,7 @@ interface ExtractedBenefit {
   benefit_type: string;
   extracted_data: Record<string, unknown>;
   confidence_score: number;
-  review_status: string;
+  is_approved: boolean | null;
 }
 
 interface DocumentInfo {
@@ -57,7 +57,7 @@ function determineCategories(benefits: ExtractedBenefit[]): string[] {
 
   const categories = new Set<string>();
   benefits.forEach((b) => {
-    if (b.review_status === "approved" && categoryMap[b.benefit_type]) {
+    if (b.is_approved === true && categoryMap[b.benefit_type]) {
       categories.add(categoryMap[b.benefit_type]);
     }
   });
@@ -87,7 +87,7 @@ export function JSONGenerator({ document, benefits }: JSONGeneratorProps) {
   const [showRaw, setShowRaw] = useState(false);
 
   // Filter to only approved benefits
-  const approvedBenefits = benefits.filter((b) => b.review_status === "approved");
+  const approvedBenefits = benefits.filter((b) => b.is_approved === true);
 
   if (approvedBenefits.length === 0) {
     return (

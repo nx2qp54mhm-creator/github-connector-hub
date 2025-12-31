@@ -25,9 +25,9 @@ interface ExtractedBenefit {
   benefit_type: string;
   extracted_data: Record<string, unknown>;
   confidence_score: number;
-  source_excerpt: string | null;
+  source_excerpts: string[] | null;
   requires_review: boolean;
-  review_status: string;
+  is_approved: boolean | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
   created_at: string;
@@ -92,7 +92,7 @@ export function useBenefitExtraction() {
     const { error } = await supabase
       .from("extracted_benefits")
       .update({
-        review_status: "approved",
+        is_approved: true,
         reviewed_by: userId,
         reviewed_at: new Date().toISOString(),
       })
@@ -107,7 +107,7 @@ export function useBenefitExtraction() {
     const { error } = await supabase
       .from("extracted_benefits")
       .update({
-        review_status: "rejected",
+        is_approved: false,
         reviewed_by: userId,
         reviewed_at: new Date().toISOString(),
       })
@@ -180,10 +180,11 @@ export function useBenefitExtraction() {
     await supabase
       .from("admin_audit_log")
       .insert({
-        action: "delete_document",
-        entity_type: "benefit_guide_document",
+        action: "delete",
+        entity_type: "document",
         entity_id: documentId,
-        details: { file_path: document?.file_path },
+        new_data: { file_path: document?.file_path },
+        change_summary: "Document deleted",
       });
   }, []);
 
