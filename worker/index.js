@@ -285,10 +285,15 @@ async function processExtraction(documentId, startTime) {
     const responseText = response.content[0]?.text || '{}';
     console.log(`[Worker] Claude response received. Tokens: ${response.usage?.input_tokens} in, ${response.usage?.output_tokens} out`);
 
-    // Parse the extraction result
+    // Parse the extraction result (handle markdown code blocks)
     let extractionResult;
     try {
-      extractionResult = JSON.parse(responseText);
+      let jsonText = responseText;
+      // Strip markdown code blocks if present
+      if (jsonText.startsWith('```')) {
+        jsonText = jsonText.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+      }
+      extractionResult = JSON.parse(jsonText);
     } catch (parseError) {
       console.error('[Worker] Failed to parse Claude response:', responseText.substring(0, 500));
       throw new Error('Failed to parse extraction result - Claude returned invalid JSON');

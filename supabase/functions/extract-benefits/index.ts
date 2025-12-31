@@ -351,10 +351,15 @@ async function processExtraction(documentId: string, document: Record<string, un
 
     console.log("[Background] Claude response received, parsing...");
 
-    // Parse the extraction result
+    // Parse the extraction result (handle markdown code blocks)
     let extractionResult: ExtractionResult;
     try {
-      extractionResult = JSON.parse(responseText);
+      let jsonText = responseText;
+      // Strip markdown code blocks if present
+      if (jsonText.startsWith("```")) {
+        jsonText = jsonText.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+      }
+      extractionResult = JSON.parse(jsonText);
     } catch {
       console.error("[Background] Failed to parse Claude response:", responseText.substring(0, 500));
       throw new Error("Failed to parse extraction result - Claude returned invalid JSON");
