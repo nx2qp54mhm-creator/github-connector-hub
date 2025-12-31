@@ -1,14 +1,21 @@
 // supabase/functions/extract-benefits/index.ts
 // Deploy with: supabase functions deploy extract-benefits
 //
-// Uses waitUntil pattern for background processing - returns immediately
-// while extraction continues in the background.
+// Supports two processing modes:
+// 1. Worker mode (recommended): Sends extraction to external worker service
+// 2. Inline mode: Uses waitUntil pattern for background processing
+//
+// Set WORKER_URL environment variable to enable worker mode.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+// Worker configuration - set WORKER_URL to enable external worker processing
+const WORKER_URL = Deno.env.get("WORKER_URL"); // e.g., https://your-worker.railway.app
+const WORKER_SECRET = Deno.env.get("WORKER_SECRET"); // Optional auth secret
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -493,8 +500,46 @@ Deno.serve(async (req) => {
       })
       .eq("id", documentId);
 
-    // Start background processing using EdgeRuntime.waitUntil
-    // This allows the function to return immediately while processing continues
+    // Choose processing mode: Worker (preferred) or inline with waitUntil
+    if (WORKER_URL) {
+      // Worker mode: Send to external worker for processing
+      console.log(`Dispatching to worker: ${WORKER_URL}`);
+
+      try {
+        const workerResponse = await fetch(`${WORKER_URL}/extract`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(WORKER_SECRET ? { "Authorization": `Bearer ${WORKER_SECRET}` } : {}),
+          },
+          body: JSON.stringify({ documentId }),
+        });
+
+        if (!workerResponse.ok) {
+          const errorText = await workerResponse.text();
+          console.error("Worker error:", workerResponse.status, errorText);
+          // Fall back to inline processing
+          console.log("Falling back to inline processing...");
+        } else {
+          console.log(`Worker accepted extraction for document: ${documentId}`);
+          return new Response(
+            JSON.stringify({
+              success: true,
+              message: "Extraction started - processing via worker",
+              documentId,
+              status: "processing",
+              processor: "worker",
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      } catch (workerError) {
+        console.error("Failed to reach worker:", workerError);
+        console.log("Falling back to inline processing...");
+      }
+    }
+
+    // Inline mode: Use EdgeRuntime.waitUntil for background processing
     // @ts-ignore - EdgeRuntime is available in Supabase Edge Functions
     if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
       // @ts-ignore
@@ -513,6 +558,7 @@ Deno.serve(async (req) => {
         message: "Extraction started - processing in background",
         documentId,
         status: "processing",
+        processor: "edge-function",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
