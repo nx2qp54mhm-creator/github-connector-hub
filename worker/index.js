@@ -285,14 +285,34 @@ async function processExtraction(documentId, startTime) {
     const responseText = response.content[0]?.text || '{}';
     console.log(`[Worker] Claude response received. Tokens: ${response.usage?.input_tokens} in, ${response.usage?.output_tokens} out`);
 
-    // Parse the extraction result (handle markdown code blocks)
+    // Parse the extraction result (handle markdown code blocks and leading text)
     let extractionResult;
     try {
       let jsonText = responseText;
-      // Strip markdown code blocks if present
-      if (jsonText.startsWith('```')) {
-        jsonText = jsonText.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+
+      // Try to extract JSON from markdown code block first
+      const codeBlockMatch = responseText.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+      if (codeBlockMatch) {
+        jsonText = codeBlockMatch[1].trim();
+      } else {
+        // Try to find raw JSON object (starts with {)
+        const jsonStart = responseText.indexOf('{');
+        if (jsonStart !== -1) {
+          // Find the matching closing brace
+          let braceCount = 0;
+          let jsonEnd = jsonStart;
+          for (let i = jsonStart; i < responseText.length; i++) {
+            if (responseText[i] === '{') braceCount++;
+            if (responseText[i] === '}') braceCount--;
+            if (braceCount === 0) {
+              jsonEnd = i + 1;
+              break;
+            }
+          }
+          jsonText = responseText.substring(jsonStart, jsonEnd);
+        }
       }
+
       extractionResult = JSON.parse(jsonText);
     } catch (parseError) {
       console.error('[Worker] Failed to parse Claude response:', responseText.substring(0, 500));
