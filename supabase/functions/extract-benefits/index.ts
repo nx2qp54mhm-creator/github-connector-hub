@@ -384,9 +384,8 @@ async function processExtraction(documentId: string, document: Record<string, un
           benefit_type: benefitType,
           extracted_data: benefitData,
           confidence_score: confidence,
-          source_excerpt: sourceExcerpt,
+          source_excerpts: sourceExcerpt ? [sourceExcerpt] : null,
           requires_review: confidence < 0.8,
-          review_status: "pending",
         });
     }
 
@@ -394,8 +393,8 @@ async function processExtraction(documentId: string, document: Record<string, un
     await supabase
       .from("benefit_guide_documents")
       .update({
-        processing_status: "completed",
-        processed_at: new Date().toISOString(),
+        processing_status: "extracted",
+        extraction_completed_at: new Date().toISOString(),
         error_message: null,
       })
       .eq("id", documentId);
@@ -404,10 +403,10 @@ async function processExtraction(documentId: string, document: Record<string, un
     await supabase
       .from("admin_audit_log")
       .insert({
-        action: "extract_benefits",
-        entity_type: "benefit_guide_document",
+        action: "extract",
+        entity_type: "document",
         entity_id: documentId,
-        details: {
+        new_data: {
           card_name: extractionResult.cardName,
           issuer: extractionResult.issuer,
           benefits_extracted: benefitTypes.length,
@@ -415,7 +414,8 @@ async function processExtraction(documentId: string, document: Record<string, un
           input_tokens: claudeData.usage?.input_tokens || 0,
           output_tokens: claudeData.usage?.output_tokens || 0,
         },
-        performed_by: document.uploaded_by as string,
+        change_summary: `Extracted ${benefitTypes.length} benefits via edge function`,
+        user_id: document.uploaded_by as string,
       });
 
     console.log(`[Background] Extraction completed for document ${documentId}: ${benefitTypes.length} benefits extracted`);

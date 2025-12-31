@@ -318,9 +318,8 @@ async function processExtraction(documentId, startTime) {
           benefit_type: benefitType,
           extracted_data: benefitData,
           confidence_score: confidence,
-          source_excerpt: sourceExcerpt,
+          source_excerpts: sourceExcerpt ? [sourceExcerpt] : null,
           requires_review: confidence < 0.8,
-          review_status: 'pending',
         });
 
       if (insertError) {
@@ -335,8 +334,8 @@ async function processExtraction(documentId, startTime) {
     const { error: updateError } = await supabaseClient
       .from('benefit_guide_documents')
       .update({
-        processing_status: 'completed',
-        processed_at: new Date().toISOString(),
+        processing_status: 'extracted',
+        extraction_completed_at: new Date().toISOString(),
         error_message: null,
       })
       .eq('id', documentId);
@@ -351,20 +350,19 @@ async function processExtraction(documentId, startTime) {
     const { error: auditError } = await supabaseClient
       .from('admin_audit_log')
       .insert({
-        action: 'extract_benefits',
-        entity_type: 'benefit_guide_document',
+        action: 'extract',
+        entity_type: 'document',
         entity_id: documentId,
-        details: {
+        new_data: {
           card_name: extractionResult.cardName,
           issuer: extractionResult.issuer,
           benefits_extracted: benefitTypes.length,
           overall_confidence: extractionResult.confidence.overall,
           input_tokens: response.usage?.input_tokens || 0,
           output_tokens: response.usage?.output_tokens || 0,
-          duration_seconds: parseFloat(duration),
-          processor: 'worker',
         },
-        performed_by: document.uploaded_by,
+        change_summary: `Extracted ${benefitTypes.length} benefits in ${duration}s via worker`,
+        user_id: document.uploaded_by,
       });
 
     if (auditError) {
