@@ -310,7 +310,7 @@ async function processExtraction(documentId, startTime) {
       const confidence = extractionResult.confidence[benefitType] || 0.5;
       const sourceExcerpt = extractionResult.sourceExcerpts?.[benefitType] || null;
 
-      await supabaseClient
+      const { error: insertError } = await supabaseClient
         .from('extracted_benefits')
         .insert({
           document_id: documentId,
@@ -322,11 +322,17 @@ async function processExtraction(documentId, startTime) {
           requires_review: confidence < 0.8,
           review_status: 'pending',
         });
+
+      if (insertError) {
+        console.error(`[Worker] Failed to insert ${benefitType}:`, insertError.message);
+      } else {
+        console.log(`[Worker] Inserted benefit: ${benefitType}`);
+      }
     }
 
     // Update document status to completed
     const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-    await supabaseClient
+    const { error: updateError } = await supabaseClient
       .from('benefit_guide_documents')
       .update({
         processing_status: 'completed',
@@ -335,8 +341,14 @@ async function processExtraction(documentId, startTime) {
       })
       .eq('id', documentId);
 
+    if (updateError) {
+      console.error(`[Worker] Failed to update document status:`, updateError.message);
+    } else {
+      console.log(`[Worker] Document status updated to completed`);
+    }
+
     // Log the extraction
-    await supabaseClient
+    const { error: auditError } = await supabaseClient
       .from('admin_audit_log')
       .insert({
         action: 'extract_benefits',
@@ -354,6 +366,10 @@ async function processExtraction(documentId, startTime) {
         },
         performed_by: document.uploaded_by,
       });
+
+    if (auditError) {
+      console.error(`[Worker] Failed to log audit:`, auditError.message);
+    }
 
     console.log(`[Worker] Extraction completed for ${documentId}: ${benefitTypes.length} benefits in ${duration}s`);
 
