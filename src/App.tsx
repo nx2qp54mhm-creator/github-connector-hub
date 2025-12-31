@@ -15,7 +15,8 @@ import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/index";
 import AdminUpload from "./pages/admin/upload";
 import AdminReview from "./pages/admin/review";
-import AdminCards from "./pages/admin/cards";
+import AdminCards from "./pages/admin/cards/index";
+import CardEditor from "./pages/admin/cards/[id]";
 
 const queryClient = new QueryClient();
 
@@ -91,6 +92,14 @@ const App = () => (
             element={
               <AdminRoute>
                 <AdminCards />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/cards/:id"
+            element={
+              <AdminRoute>
+                <CardEditor />
               </AdminRoute>
             }
           />

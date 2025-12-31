@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useBenefitExtraction } from "@/hooks/useBenefitExtraction";
 import { BenefitEditor } from "@/components/admin/BenefitEditor";
 import { ConfidenceBadge } from "@/components/admin/ConfidenceBadge";
+import { JSONGenerator } from "@/components/admin/JSONGenerator";
 import { toast } from "sonner";
 
 interface DocumentInfo {
@@ -419,6 +420,12 @@ export default function AdminReview() {
                     onUpdate={handleUpdate}
                   />
                 ))}
+              </div>
+
+              {/* JSON Generator - shows after benefits are approved */}
+              <div className="mt-8">
+                <h2 className="text-xl font-semibold mb-4">Export Card Data</h2>
+                <JSONGenerator document={document} benefits={benefits} />
               </div>
             </div>
           )}

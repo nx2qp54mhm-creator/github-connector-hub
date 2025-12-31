@@ -1,7 +1,9 @@
 // supabase/functions/extract-benefits/index.ts
 // Deploy with: supabase functions deploy extract-benefits
+//
+// Uses waitUntil pattern for background processing - returns immediately
+// while extraction continues in the background.
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
@@ -264,67 +266,21 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 }
 
 // ============================================
-// MAIN HANDLER
+// BACKGROUND EXTRACTION PROCESSOR
 // ============================================
 
-serve(async (req) => {
-  // Handle CORS preflight
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+async function processExtraction(documentId: string, document: Record<string, unknown>) {
+  const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
   try {
-    // Validate environment
-    if (!ANTHROPIC_API_KEY) {
-      throw new Error("ANTHROPIC_API_KEY is not configured");
-    }
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      throw new Error("Supabase configuration is missing");
-    }
-
-    // Initialize Supabase client with service role for admin access
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-    // Parse request
-    const body: RequestBody = await req.json();
-    const { documentId } = body;
-
-    if (!documentId) {
-      throw new Error("documentId is required");
-    }
-
-    console.log(`Processing document: ${documentId}`);
-
-    // Get document info from database
-    const { data: document, error: docError } = await supabase
-      .from("benefit_guide_documents")
-      .select("*")
-      .eq("id", documentId)
-      .single();
-
-    if (docError || !document) {
-      throw new Error(`Document not found: ${docError?.message || "Unknown error"}`);
-    }
-
-    // Update status to processing
-    await supabase
-      .from("benefit_guide_documents")
-      .update({ processing_status: "processing" })
-      .eq("id", documentId);
+    console.log(`[Background] Starting extraction for document: ${documentId}`);
 
     // Download PDF from storage
     const { data: fileData, error: downloadError } = await supabase.storage
       .from("benefit-guides")
-      .download(document.file_path);
+      .download(document.file_path as string);
 
     if (downloadError || !fileData) {
-      await supabase
-        .from("benefit_guide_documents")
-        .update({
-          processing_status: "failed",
-          error_message: `Failed to download file: ${downloadError?.message || "Unknown error"}`
-        })
-        .eq("id", documentId);
       throw new Error(`Failed to download file: ${downloadError?.message || "Unknown error"}`);
     }
 
@@ -332,14 +288,14 @@ serve(async (req) => {
     const arrayBuffer = await fileData.arrayBuffer();
     const base64 = arrayBufferToBase64(arrayBuffer);
 
-    console.log(`PDF downloaded and converted, size: ${arrayBuffer.byteLength} bytes, base64 length: ${base64.length}`);
+    console.log(`[Background] PDF converted, size: ${arrayBuffer.byteLength} bytes`);
 
     // Call Claude API with PDF document
     const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
+        "x-api-key": ANTHROPIC_API_KEY!,
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
@@ -370,9 +326,8 @@ serve(async (req) => {
 
     if (!claudeResponse.ok) {
       const errorText = await claudeResponse.text();
-      console.error("Claude API error:", claudeResponse.status, errorText);
+      console.error("[Background] Claude API error:", claudeResponse.status, errorText);
 
-      // Parse error for more details
       let errorMessage = `Claude API error: ${claudeResponse.status}`;
       try {
         const errorJson = JSON.parse(errorText);
@@ -381,45 +336,31 @@ serve(async (req) => {
         errorMessage = `Claude API error: ${claudeResponse.status} - ${errorText.substring(0, 200)}`;
       }
 
-      await supabase
-        .from("benefit_guide_documents")
-        .update({
-          processing_status: "failed",
-          error_message: errorMessage
-        })
-        .eq("id", documentId);
-
       throw new Error(errorMessage);
     }
 
     const claudeData = await claudeResponse.json();
     const responseText = claudeData.content[0]?.text || "{}";
 
-    console.log("Claude response received, parsing...");
+    console.log("[Background] Claude response received, parsing...");
 
     // Parse the extraction result
     let extractionResult: ExtractionResult;
     try {
       extractionResult = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error("Failed to parse Claude response:", responseText);
-      await supabase
-        .from("benefit_guide_documents")
-        .update({
-          processing_status: "failed",
-          error_message: "Failed to parse extraction result"
-        })
-        .eq("id", documentId);
-      throw new Error("Failed to parse extraction result");
+    } catch {
+      console.error("[Background] Failed to parse Claude response:", responseText.substring(0, 500));
+      throw new Error("Failed to parse extraction result - Claude returned invalid JSON");
     }
 
     // Calculate overall confidence if not provided
-    if (!extractionResult.confidence.overall) {
+    if (!extractionResult.confidence?.overall) {
+      extractionResult.confidence = extractionResult.confidence || { overall: 0 };
       extractionResult.confidence.overall = calculateOverallConfidence(extractionResult.confidence);
     }
 
     // Store extracted benefits in the database
-    const benefitTypes = Object.keys(extractionResult.benefits) as Array<keyof ExtractedBenefitData>;
+    const benefitTypes = Object.keys(extractionResult.benefits || {}) as Array<keyof ExtractedBenefitData>;
 
     for (const benefitType of benefitTypes) {
       const benefitData = extractionResult.benefits[benefitType];
@@ -448,6 +389,7 @@ serve(async (req) => {
       .update({
         processing_status: "completed",
         processed_at: new Date().toISOString(),
+        error_message: null,
       })
       .eq("id", documentId);
 
@@ -463,52 +405,121 @@ serve(async (req) => {
           issuer: extractionResult.issuer,
           benefits_extracted: benefitTypes.length,
           overall_confidence: extractionResult.confidence.overall,
-        },
-        performed_by: document.uploaded_by,
-      });
-
-    console.log(`Extraction completed for document ${documentId}`);
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        documentId,
-        extraction: {
-          cardName: extractionResult.cardName,
-          issuer: extractionResult.issuer,
-          annualFee: extractionResult.annualFee,
-          benefitsExtracted: benefitTypes.length,
-          confidence: extractionResult.confidence,
-        },
-        usage: {
           input_tokens: claudeData.usage?.input_tokens || 0,
           output_tokens: claudeData.usage?.output_tokens || 0,
         },
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+        performed_by: document.uploaded_by as string,
+      });
+
+    console.log(`[Background] Extraction completed for document ${documentId}: ${benefitTypes.length} benefits extracted`);
+
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-    console.error("Error in extract-benefits:", errorMessage, error);
+    console.error(`[Background] Extraction failed for document ${documentId}:`, errorMessage);
 
-    // Try to update document status to failed if we have the documentId
-    try {
-      const body = await req.clone().json().catch(() => ({}));
-      if (body.documentId && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
-        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-        await supabase
-          .from("benefit_guide_documents")
-          .update({
-            processing_status: "failed",
-            error_message: errorMessage.substring(0, 500)
-          })
-          .eq("id", body.documentId);
-      }
-    } catch (updateError) {
-      console.error("Failed to update document status:", updateError);
+    // Update document status to failed
+    await supabase
+      .from("benefit_guide_documents")
+      .update({
+        processing_status: "failed",
+        error_message: errorMessage.substring(0, 500),
+      })
+      .eq("id", documentId);
+  }
+}
+
+// ============================================
+// MAIN HANDLER
+// ============================================
+
+Deno.serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  try {
+    // Validate environment
+    if (!ANTHROPIC_API_KEY) {
+      throw new Error("ANTHROPIC_API_KEY is not configured");
     }
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("Supabase configuration is missing");
+    }
+
+    // Initialize Supabase client with service role for admin access
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Parse request
+    const body: RequestBody = await req.json();
+    const { documentId } = body;
+
+    if (!documentId) {
+      throw new Error("documentId is required");
+    }
+
+    console.log(`Received extraction request for document: ${documentId}`);
+
+    // Get document info from database
+    const { data: document, error: docError } = await supabase
+      .from("benefit_guide_documents")
+      .select("*")
+      .eq("id", documentId)
+      .single();
+
+    if (docError || !document) {
+      throw new Error(`Document not found: ${docError?.message || "Unknown error"}`);
+    }
+
+    // Check if already processing
+    if (document.processing_status === "processing") {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Document is already being processed",
+          documentId,
+          status: "processing",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Update status to processing immediately
+    await supabase
+      .from("benefit_guide_documents")
+      .update({
+        processing_status: "processing",
+        error_message: null,
+      })
+      .eq("id", documentId);
+
+    // Start background processing using EdgeRuntime.waitUntil
+    // This allows the function to return immediately while processing continues
+    // @ts-ignore - EdgeRuntime is available in Supabase Edge Functions
+    if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
+      // @ts-ignore
+      EdgeRuntime.waitUntil(processExtraction(documentId, document));
+      console.log(`Background extraction started for document: ${documentId}`);
+    } else {
+      // Fallback: process inline (will be subject to timeout)
+      console.log(`EdgeRuntime.waitUntil not available, processing inline for document: ${documentId}`);
+      await processExtraction(documentId, document);
+    }
+
+    // Return immediately - processing continues in background
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Extraction started - processing in background",
+        documentId,
+        status: "processing",
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+    console.error("Error in extract-benefits:", errorMessage);
 
     return new Response(
       JSON.stringify({
