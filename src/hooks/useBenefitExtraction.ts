@@ -20,17 +20,19 @@ interface ExtractionState {
 
 interface ExtractedBenefit {
   id: string;
-  document_id: string;
+  document_id: string | null;
   card_id: string;
   benefit_type: string;
-  extracted_data: Record<string, unknown>;
-  confidence_score: number;
-  source_excerpts: string[] | null;
-  requires_review: boolean;
+  extracted_data: unknown;
+  confidence_score: number | null;
+  source_excerpts: unknown;
+  requires_review: boolean | null;
   is_approved: boolean | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
-  created_at: string;
+  review_notes: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export function useBenefitExtraction() {
@@ -119,10 +121,11 @@ export function useBenefitExtraction() {
   }, []);
 
   const updateBenefitData = useCallback(async (benefitId: string, newData: Record<string, unknown>) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await supabase
       .from("extracted_benefits")
       .update({
-        extracted_data: newData,
+        extracted_data: newData as any,
       })
       .eq("id", benefitId);
 

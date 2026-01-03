@@ -18,25 +18,36 @@ interface DocumentInfo {
   card_id: string | null;
   card_name: string | null;
   file_name: string;
-  processing_status: string;
-  processed_at: string | null;
+  file_path: string;
+  file_size: number | null;
+  mime_type: string | null;
+  guide_version: string | null;
+  effective_date: string | null;
+  processing_status: string | null;
   error_message: string | null;
-  created_at: string;
+  extraction_started_at: string | null;
+  extraction_completed_at: string | null;
+  uploaded_by: string | null;
+  uploaded_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 interface ExtractedBenefit {
   id: string;
-  document_id: string;
+  document_id: string | null;
   card_id: string;
   benefit_type: string;
   extracted_data: Record<string, unknown>;
   confidence_score: number;
   source_excerpts: string[] | null;
-  requires_review: boolean;
+  requires_review: boolean | null;
   is_approved: boolean | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
-  created_at: string;
+  review_notes: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export default function AdminReview() {
@@ -78,7 +89,24 @@ export default function AdminReview() {
         .order("created_at", { ascending: true });
 
       if (!benefitsError && benefitsData) {
-        setBenefits(benefitsData);
+        // Map to our local type
+        const mappedBenefits: ExtractedBenefit[] = benefitsData.map((b) => ({
+          id: b.id,
+          document_id: b.document_id,
+          card_id: b.card_id,
+          benefit_type: b.benefit_type,
+          extracted_data: (typeof b.extracted_data === 'object' && b.extracted_data !== null ? b.extracted_data : {}) as Record<string, unknown>,
+          confidence_score: b.confidence_score ?? 0,
+          source_excerpts: Array.isArray(b.source_excerpts) ? b.source_excerpts as string[] : null,
+          requires_review: b.requires_review,
+          is_approved: b.is_approved,
+          reviewed_by: b.reviewed_by,
+          reviewed_at: b.reviewed_at,
+          review_notes: b.review_notes,
+          created_at: b.created_at,
+          updated_at: b.updated_at,
+        }));
+        setBenefits(mappedBenefits);
       }
     }
   };

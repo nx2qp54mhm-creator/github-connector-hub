@@ -68,8 +68,8 @@ export default function AdminDashboard() {
       // Get pending reviews count
       const { count: pendingReviewsCount } = await supabase
         .from("extracted_benefits")
-        .select("*", { count: "exact", head: true })
-        .eq("review_status", "pending");
+        .select("id", { count: "exact", head: true })
+        .is("is_approved", null);
 
       // Get pending/processing documents count
       const { count: pendingDocsCount } = await supabase
