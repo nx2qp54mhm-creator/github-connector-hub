@@ -59,6 +59,71 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (Backend & Auth)
+
+## Environment Setup
+
+This project uses separate environments for development, staging, and production.
+
+### Environment Files
+
+| File | Purpose | Git Status |
+|------|---------|------------|
+| `.env.example` | Template with all required variables | Committed |
+| `.env.development` | Development environment config | Committed (template) |
+| `.env.production` | Production environment config | Committed |
+| `.env.local` | Local overrides (your secrets) | Gitignored |
+
+### Setting Up a Development Environment
+
+1. **Create a new Supabase project** for development at [supabase.com](https://supabase.com)
+
+2. **Run the setup script:**
+   ```sh
+   ./scripts/setup-dev-env.sh
+   ```
+
+   Or manually:
+   ```sh
+   # Copy and edit the development config
+   cp .env.development .env.local
+   # Edit .env.local with your dev Supabase credentials
+
+   # Link Supabase CLI to your dev project
+   supabase link --project-ref YOUR_DEV_PROJECT_ID
+
+   # Apply database migrations
+   supabase db push
+
+   # Deploy Edge Functions
+   supabase functions deploy coverage-assistant
+   supabase functions deploy extract-benefits
+   ```
+
+3. **Set Edge Function secrets** in Supabase Dashboard:
+   - Go to Project Settings > Vault
+   - Add `ANTHROPIC_API_KEY` with your API key
+
+### Switching Environments
+
+```sh
+# Switch to development
+./scripts/switch-env.sh dev
+
+# Switch to production
+./scripts/switch-env.sh prod
+
+# Switch to staging (if configured)
+./scripts/switch-env.sh staging
+```
+
+### Railway Worker (Production)
+
+The PDF extraction worker runs on Railway. Environment variables needed:
+- `ANTHROPIC_API_KEY`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `WORKER_SECRET`
 
 ## How can I deploy this project?
 
