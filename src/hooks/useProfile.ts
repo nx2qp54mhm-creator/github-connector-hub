@@ -41,7 +41,7 @@ export function useProfile() {
       console.error("Error fetching profile:", error);
     }
     
-    setProfile(data);
+    setProfile(data as Profile | null);
     setLoading(false);
   };
 

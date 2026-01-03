@@ -2,8 +2,11 @@
 // Deploy with: supabase functions deploy coverage-assistant
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -204,6 +207,73 @@ interface RequestBody {
   credit_cards: CreditCard[];
   insurance_policies: InsurancePolicy[];
   conversation_history?: ChatMessage[];
+}
+
+// ============================================
+// INPUT VALIDATION
+// ============================================
+
+function validateRequest(body: RequestBody): { valid: boolean; error?: string } {
+  // Validate question
+  if (!body.question || typeof body.question !== "string") {
+    return { valid: false, error: "Question is required and must be a string" };
+  }
+  if (body.question.length > 2000) {
+    return { valid: false, error: "Question too long (max 2000 characters)" };
+  }
+  if (body.question.trim().length === 0) {
+    return { valid: false, error: "Question cannot be empty" };
+  }
+
+  // Validate credit_cards
+  if (body.credit_cards !== undefined && body.credit_cards !== null) {
+    if (!Array.isArray(body.credit_cards)) {
+      return { valid: false, error: "credit_cards must be an array" };
+    }
+    if (body.credit_cards.length > 25) {
+      return { valid: false, error: "Too many credit cards (max 25)" };
+    }
+  }
+
+  // Validate insurance_policies
+  if (body.insurance_policies !== undefined && body.insurance_policies !== null) {
+    if (!Array.isArray(body.insurance_policies)) {
+      return { valid: false, error: "insurance_policies must be an array" };
+    }
+    if (body.insurance_policies.length > 15) {
+      return { valid: false, error: "Too many insurance policies (max 15)" };
+    }
+  }
+
+  // Validate conversation_history
+  if (body.conversation_history !== undefined && body.conversation_history !== null) {
+    if (!Array.isArray(body.conversation_history)) {
+      return { valid: false, error: "conversation_history must be an array" };
+    }
+    if (body.conversation_history.length > 30) {
+      return { valid: false, error: "Conversation history too long (max 30 messages)" };
+    }
+    
+    // Validate total message size in conversation history
+    const totalHistorySize = body.conversation_history.reduce((sum, msg) => 
+      sum + (msg.content?.length || 0), 0
+    );
+    if (totalHistorySize > 100000) {
+      return { valid: false, error: "Conversation history content too large" };
+    }
+
+    // Validate each message structure
+    for (const msg of body.conversation_history) {
+      if (!msg.role || !["user", "assistant"].includes(msg.role)) {
+        return { valid: false, error: "Invalid message role in conversation history" };
+      }
+      if (typeof msg.content !== "string") {
+        return { valid: false, error: "Message content must be a string" };
+      }
+    }
+  }
+
+  return { valid: true };
 }
 
 // ============================================
@@ -498,49 +568,48 @@ function formatAutoInsurance(auto: AutoInsuranceCoverage): string {
     }
   }
 
-  // Uninsured Motorist - show status whether covered or not
+  // Uninsured/Underinsured motorist
   if (auto.uninsured_motorist_covered !== undefined) {
     if (auto.uninsured_motorist_covered) {
-      sections.push("\n**Uninsured Motorist:**");
+      sections.push("\n**Uninsured/Underinsured Motorist:** Covered");
       if (auto.uninsured_motorist_per_person) {
-        sections.push(`- Per person: $${auto.uninsured_motorist_per_person.toLocaleString()}`);
+        sections.push(`- Per Person: $${auto.uninsured_motorist_per_person.toLocaleString()}`);
       }
       if (auto.uninsured_motorist_per_accident) {
-        sections.push(`- Per accident: $${auto.uninsured_motorist_per_accident.toLocaleString()}`);
+        sections.push(`- Per Accident: $${auto.uninsured_motorist_per_accident.toLocaleString()}`);
       }
     } else {
-      sections.push("\n**Uninsured Motorist:** Not covered");
+      sections.push("\n**Uninsured/Underinsured Motorist:** Not covered");
     }
-  } else if (auto.uninsured_motorist) {
-    // Legacy field support
-    sections.push(`\n**Uninsured Motorist:** $${auto.uninsured_motorist.toLocaleString()}`);
+  } else if (auto.uninsured_motorist || auto.underinsured_motorist) {
+    sections.push("\n**Uninsured/Underinsured Motorist:**");
+    if (auto.uninsured_motorist) {
+      sections.push(`- Uninsured Motorist: $${auto.uninsured_motorist.toLocaleString()}`);
+    }
+    if (auto.underinsured_motorist) {
+      sections.push(`- Underinsured Motorist: $${auto.underinsured_motorist.toLocaleString()}`);
+    }
   }
 
-  // Underinsured Motorist (if separate from uninsured)
-  if (auto.underinsured_motorist) {
-    sections.push(`**Underinsured Motorist:** $${auto.underinsured_motorist.toLocaleString()}`);
-  }
-
-  // Medical Payments - show status whether covered or not
+  // Medical payments
   if (auto.medical_payments_covered !== undefined) {
-    if (auto.medical_payments_covered && auto.medical_payments) {
-      sections.push(`\n**Medical Payments:** $${auto.medical_payments.toLocaleString()}`);
-    } else if (!auto.medical_payments_covered) {
+    if (auto.medical_payments_covered) {
+      sections.push(`\n**Medical Payments:** $${auto.medical_payments?.toLocaleString() || "Covered"}`);
+    } else {
       sections.push("\n**Medical Payments:** Not covered");
     }
   } else if (auto.medical_payments) {
     sections.push(`\n**Medical Payments:** $${auto.medical_payments.toLocaleString()}`);
   }
 
-  // Personal Injury Protection
   if (auto.personal_injury_protection) {
-    sections.push(`**PIP:** $${auto.personal_injury_protection.toLocaleString()}`);
+    sections.push(`**Personal Injury Protection (PIP):** $${auto.personal_injury_protection.toLocaleString()}`);
   }
 
-  // Rental Reimbursement - show status whether covered or not
+  // Rental reimbursement
   if (auto.rental_reimbursement_covered !== undefined) {
     if (auto.rental_reimbursement_covered) {
-      sections.push("\n**Rental Reimbursement:** Included");
+      sections.push("\n**Rental Reimbursement:** Covered");
       if (auto.rental_reimbursement_daily) {
         sections.push(`- Daily Limit: $${auto.rental_reimbursement_daily}`);
       }
@@ -548,38 +617,33 @@ function formatAutoInsurance(auto: AutoInsuranceCoverage): string {
         sections.push(`- Maximum: $${auto.rental_reimbursement_max}`);
       }
     } else {
-      sections.push("\n**Rental Reimbursement:** Not included");
-    }
-  } else if (auto.rental_reimbursement_daily || auto.rental_reimbursement_max) {
-    sections.push("\n**Rental Reimbursement:** Included");
-    if (auto.rental_reimbursement_daily) {
-      sections.push(`- Daily Limit: $${auto.rental_reimbursement_daily}`);
-    }
-    if (auto.rental_reimbursement_max) {
-      sections.push(`- Maximum: $${auto.rental_reimbursement_max}`);
+      sections.push("\n**Rental Reimbursement:** Not covered");
     }
   }
 
-  // Roadside Assistance - show status whether included or not
+  // Roadside assistance
   if (auto.roadside_assistance !== undefined) {
     if (auto.roadside_assistance) {
       sections.push("\n**Roadside Assistance:** Included");
       if (auto.roadside_details && auto.roadside_details.length > 0) {
-        sections.push(`- Details: ${auto.roadside_details.join("; ")}`);
+        sections.push(`- Services: ${auto.roadside_details.join("; ")}`);
       }
     } else {
       sections.push("\n**Roadside Assistance:** Not included");
     }
   }
 
-  // Gap Coverage - show status whether included or not
+  // Gap coverage
   if (auto.gap_coverage !== undefined) {
-    sections.push(`\n**Gap Coverage:** ${auto.gap_coverage ? "Included" : "Not included"}`);
+    sections.push(`\n**Gap Coverage:** ${auto.gap_coverage ? "Yes" : "No"}`);
   }
 
-  // Covered vehicles
+  // Covered vehicles and drivers
   if (auto.covered_vehicles && auto.covered_vehicles.length > 0) {
-    sections.push(`\n**Covered Vehicles:** ${auto.covered_vehicles.join(", ")}`);
+    sections.push(`\n**Covered Vehicles:** ${auto.covered_vehicles.join("; ")}`);
+  }
+  if (auto.covered_drivers && auto.covered_drivers.length > 0) {
+    sections.push(`**Covered Drivers:** ${auto.covered_drivers.join("; ")}`);
   }
 
   // Exclusions
@@ -596,66 +660,65 @@ function formatHomeInsurance(home: HomeInsuranceCoverage): string {
   if (home.insurer) {
     sections.push(`Insurer: ${home.insurer}`);
   }
+  if (home.policy_number) {
+    sections.push(`Policy Number: ${home.policy_number}`);
+  }
   if (home.policy_type) {
     sections.push(`Policy Type: ${home.policy_type}`);
   }
 
-  // Dwelling coverage
+  // Coverage amounts
+  sections.push("\n**Coverage Amounts:**");
   if (home.dwelling_coverage) {
-    sections.push(`\n**Dwelling Coverage:** $${home.dwelling_coverage.toLocaleString()}`);
+    sections.push(`- Dwelling (Coverage A): $${home.dwelling_coverage.toLocaleString()}`);
   }
   if (home.other_structures) {
-    sections.push(`**Other Structures:** $${home.other_structures.toLocaleString()}`);
+    sections.push(`- Other Structures (Coverage B): $${home.other_structures.toLocaleString()}`);
   }
   if (home.personal_property) {
-    sections.push(`**Personal Property:** $${home.personal_property.toLocaleString()}`);
+    sections.push(`- Personal Property (Coverage C): $${home.personal_property.toLocaleString()}`);
   }
   if (home.loss_of_use) {
-    sections.push(`**Loss of Use:** $${home.loss_of_use.toLocaleString()}`);
+    sections.push(`- Loss of Use (Coverage D): $${home.loss_of_use.toLocaleString()}`);
   }
-
-  // Liability
   if (home.personal_liability) {
-    sections.push(`\n**Personal Liability:** $${home.personal_liability.toLocaleString()}`);
+    sections.push(`- Personal Liability (Coverage E): $${home.personal_liability.toLocaleString()}`);
   }
   if (home.medical_payments) {
-    sections.push(`**Medical Payments:** $${home.medical_payments.toLocaleString()}`);
+    sections.push(`- Medical Payments (Coverage F): $${home.medical_payments.toLocaleString()}`);
   }
 
   // Deductibles
-  const deductibles: string[] = [];
+  sections.push("\n**Deductibles:**");
   if (home.standard_deductible) {
-    deductibles.push(`Standard: $${home.standard_deductible}`);
+    sections.push(`- Standard: $${home.standard_deductible.toLocaleString()}`);
   }
   if (home.wind_hail_deductible) {
-    deductibles.push(`Wind/Hail: $${home.wind_hail_deductible}`);
+    sections.push(`- Wind/Hail: $${home.wind_hail_deductible.toLocaleString()}`);
   }
   if (home.hurricane_deductible) {
-    deductibles.push(`Hurricane: $${home.hurricane_deductible}`);
-  }
-  if (deductibles.length > 0) {
-    sections.push(`\n**Deductibles:** ${deductibles.join(", ")}`);
+    sections.push(`- Hurricane: $${home.hurricane_deductible.toLocaleString()}`);
   }
 
   // Additional coverages
-  const additional: string[] = [];
+  const additionalCoverages: string[] = [];
   if (home.water_backup) {
-    additional.push(`Water Backup: $${home.water_backup.toLocaleString()}`);
+    additionalCoverages.push(`Water Backup ($${home.water_backup.toLocaleString()})`);
   }
   if (home.identity_theft) {
-    additional.push("Identity Theft Protection");
+    additionalCoverages.push("Identity Theft Protection");
   }
   if (home.equipment_breakdown) {
-    additional.push("Equipment Breakdown");
+    additionalCoverages.push("Equipment Breakdown");
   }
   if (home.flood_coverage) {
-    additional.push("Flood Coverage");
+    additionalCoverages.push("Flood Coverage");
   }
   if (home.earthquake_coverage) {
-    additional.push("Earthquake Coverage");
+    additionalCoverages.push("Earthquake Coverage");
   }
-  if (additional.length > 0) {
-    sections.push(`\n**Additional Coverages:** ${additional.join("; ")}`);
+  if (additionalCoverages.length > 0) {
+    sections.push(`\n**Additional Coverages:** ${additionalCoverages.join("; ")}`);
   }
 
   // Scheduled items
@@ -678,25 +741,36 @@ function formatRentersInsurance(renters: RentersInsuranceCoverage): string {
   if (renters.insurer) {
     sections.push(`Insurer: ${renters.insurer}`);
   }
+  if (renters.policy_number) {
+    sections.push(`Policy Number: ${renters.policy_number}`);
+  }
 
+  // Coverage amounts
+  sections.push("\n**Coverage Amounts:**");
   if (renters.personal_property) {
-    sections.push(`\n**Personal Property:** $${renters.personal_property.toLocaleString()}`);
+    sections.push(`- Personal Property: $${renters.personal_property.toLocaleString()}`);
   }
   if (renters.loss_of_use) {
-    sections.push(`**Loss of Use:** $${renters.loss_of_use.toLocaleString()}`);
+    sections.push(`- Loss of Use: $${renters.loss_of_use.toLocaleString()}`);
   }
   if (renters.personal_liability) {
-    sections.push(`**Personal Liability:** $${renters.personal_liability.toLocaleString()}`);
+    sections.push(`- Personal Liability: $${renters.personal_liability.toLocaleString()}`);
   }
   if (renters.medical_payments) {
-    sections.push(`**Medical Payments:** $${renters.medical_payments.toLocaleString()}`);
+    sections.push(`- Medical Payments: $${renters.medical_payments.toLocaleString()}`);
   }
+
+  // Deductible
   if (renters.deductible) {
-    sections.push(`**Deductible:** $${renters.deductible}`);
+    sections.push(`\n**Deductible:** $${renters.deductible.toLocaleString()}`);
   }
-  if (renters.replacement_cost) {
-    sections.push(`**Replacement Cost Coverage:** Yes`);
+
+  // Replacement cost
+  if (renters.replacement_cost !== undefined) {
+    sections.push(`**Replacement Cost Coverage:** ${renters.replacement_cost ? "Yes" : "No (Actual Cash Value)"}`);
   }
+
+  // Identity theft
   if (renters.identity_theft) {
     sections.push(`**Identity Theft Protection:** Yes`);
   }
@@ -819,20 +893,62 @@ ${policyInfo}
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Verify authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.error("Missing authorization header");
+      return new Response(
+        JSON.stringify({ success: false, error: "Missing authorization header" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      console.error("Missing Supabase configuration");
+      return new Response(
+        JSON.stringify({ success: false, error: "Server configuration error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Create client with user's JWT
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    // Verify user is authenticated
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      console.error("Authentication failed:", authError?.message || "No user found");
+      return new Response(
+        JSON.stringify({ success: false, error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log(`Authenticated request from user: ${user.id}`);
+
     if (!ANTHROPIC_API_KEY) {
       throw new Error("ANTHROPIC_API_KEY is not configured");
     }
 
     const body: RequestBody = await req.json();
-    const { question, credit_cards, insurance_policies, conversation_history = [] } = body;
-
-    if (!question || typeof question !== "string") {
-      throw new Error("Question is required");
+    
+    // Validate input
+    const validation = validateRequest(body);
+    if (!validation.valid) {
+      console.error("Input validation failed:", validation.error);
+      return new Response(
+        JSON.stringify({ success: false, error: validation.error }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+
+    const { question, credit_cards, insurance_policies, conversation_history = [] } = body;
 
     const systemPrompt = buildSystemPrompt(credit_cards || [], insurance_policies || []);
 
@@ -872,6 +988,8 @@ serve(async (req) => {
 
     const data = await response.json();
     const assistantMessage = data.content[0]?.text || "I'm sorry, I couldn't generate a response.";
+
+    console.log(`Successfully processed request for user: ${user.id}, tokens used: ${data.usage?.input_tokens || 0} in, ${data.usage?.output_tokens || 0} out`);
 
     return new Response(
       JSON.stringify({

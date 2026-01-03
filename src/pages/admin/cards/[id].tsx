@@ -218,13 +218,13 @@ export default function CardEditor() {
             {card.tripProtection && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Trip Cancellation</span>
-                <span>${card.tripProtection.maxCancellation?.toLocaleString()}</span>
+                <span>${card.tripProtection.cancellation_coverage?.toLocaleString()}</span>
               </div>
             )}
             {card.purchaseProtection && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Purchase Protection</span>
-                <span>${card.purchaseProtection.maxPerClaim?.toLocaleString()}/claim</span>
+                <span>${card.purchaseProtection.max_per_claim?.toLocaleString()}/claim</span>
               </div>
             )}
             <div className="flex justify-between text-sm">
