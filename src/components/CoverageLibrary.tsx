@@ -2,17 +2,22 @@ import { useMemo } from "react";
 import { X, CreditCard, FileText, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCoverageStore } from "@/hooks/useCoverageStore";
+import { useAuth } from "@/hooks/useAuth";
 import { getCardById } from "@/data/cardDatabase";
+
 export function CoverageLibrary() {
+  const { user } = useAuth();
   const {
+    userId: storeUserId,
     selectedCards,
     uploadedPolicies,
     addedPlans,
     lastUpdated,
     removeCard,
     removePolicy,
-    removePlan
+    removePlan,
   } = useCoverageStore();
 
   // Memoize card lookups to prevent recalculation on every render
@@ -21,7 +26,12 @@ export function CoverageLibrary() {
     [selectedCards]
   );
 
-  const isEmpty = selectedCards.length === 0 && uploadedPolicies.length === 0 && addedPlans.length === 0;
+  // Only show data if store is initialized for current user
+  const hasValidData = user && storeUserId === user.id;
+
+  // Show empty state if no data or store not initialized for this user
+  const isEmpty = !hasValidData || (selectedCards.length === 0 && uploadedPolicies.length === 0 && addedPlans.length === 0);
+
   const formatDate = (iso: string): string => {
     const date = new Date(iso);
     return `${date.toLocaleDateString()} at ${date.toLocaleTimeString([], {
@@ -29,6 +39,7 @@ export function CoverageLibrary() {
       minute: '2-digit'
     })}`;
   };
+
   return <Card className="border border-border shadow-soft overflow-hidden">
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
@@ -37,14 +48,15 @@ export function CoverageLibrary() {
             Coverage Library
           </h3>
           <span className="text-xs text-muted-foreground">
-            {selectedCards.length + uploadedPolicies.length + addedPlans.length} items
+            {hasValidData ? selectedCards.length + uploadedPolicies.length + addedPlans.length : 0} items
           </span>
         </div>
       </div>
 
-      <div className="p-3 space-y-4">
+      <ScrollArea className="max-h-56">
+        <div className="p-3 space-y-4">
           {/* Credit Cards */}
-          {cards.length > 0 && <div className="space-y-1">
+          {hasValidData && cards.length > 0 && <div className="space-y-1">
               <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide px-1">
                 Credit Cards
               </p>
@@ -65,7 +77,7 @@ export function CoverageLibrary() {
             </div>}
 
           {/* Policies */}
-          {uploadedPolicies.length > 0 && <div className="space-y-1">
+          {hasValidData && uploadedPolicies.length > 0 && <div className="space-y-1">
               <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide px-1">
                 Insurance Policies
               </p>
@@ -86,7 +98,7 @@ export function CoverageLibrary() {
             </div>}
 
           {/* Plans */}
-          {addedPlans.length > 0 && <div className="space-y-1">
+          {hasValidData && addedPlans.length > 0 && <div className="space-y-1">
               <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide px-1">
                 Other Plans
               </p>
@@ -106,11 +118,12 @@ export function CoverageLibrary() {
               No coverage added yet
             </p>}
         </div>
+      </ScrollArea>
 
       {/* Footer */}
       <div className="px-4 py-2 border-t border-border">
         <p className="text-xs text-muted-foreground">
-          Last updated: {lastUpdated ? formatDate(lastUpdated) : "Never"}
+          Last updated: {hasValidData && lastUpdated ? formatDate(lastUpdated) : "Never"}
         </p>
       </div>
     </Card>;
