@@ -125,9 +125,9 @@ export default function Auth() {
     if (!validateInput()) return;
 
     setLoading(true);
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `${window.location.origin}/confirm-email`;
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
@@ -141,11 +141,18 @@ export default function Auth() {
         description: error.message,
         variant: "destructive",
       });
+    } else if (data.user && !data.user.email_confirmed_at) {
+      // User created but needs to confirm email
+      navigate("/confirm-email");
+    } else if (data.session) {
+      // User already confirmed (shouldn't happen on new signup, but handle it)
+      navigate("/", { replace: true });
     } else {
       toast({
         title: "Check your email",
         description: "We sent you a confirmation link to complete your registration.",
       });
+      navigate("/confirm-email");
     }
     setLoading(false);
   };
