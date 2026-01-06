@@ -1,0 +1,74 @@
+# Dependencies
+node_modules/
+worker/node_modules/
+
+# Build outputs
+dist/
+build/
+.vite/
+
+# Git
+.git/
+
+# Lock files (large, not useful for context)
+package-lock.json
+bun.lockb
+yarn.lock
+pnpm-lock.yaml
+
+# Environment files (security)
+.env
+.env.local
+.env.*.local
+
+# IDE and editor
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Coverage and testing
+coverage/
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
+# Large assets
+*.pdf
+*.zip
+*.tar.gz
+
+# Generated types (large, can regenerate with: npx supabase gen types)
+src/integrations/supabase/types.ts
+
+# shadcn/ui components (standard library, rarely need changes)
+# Uncomment if you want faster searches and don't modify these often:
+# src/components/ui/*.tsx
+
+# Static data files (if large)
+# src/data/*.json
+
+# Documentation (focus on code)
+README.md
+CHANGELOG.md
+LICENSE
+
+# Public assets (images, fonts)
+public/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.eot
