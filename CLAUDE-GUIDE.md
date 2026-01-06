@@ -168,15 +168,70 @@ Common terms you'll encounter:
 | **TypeScript** | JavaScript with added safety checks to catch errors before they happen |
 | **Tailwind** | A system for styling your app using pre-defined CSS classes |
 | **shadcn/ui** | A library of pre-built UI components (buttons, modals, forms, etc.) |
+| **Husky** | A tool that manages git hooks (automatic scripts that run at certain points) |
+| **lint-staged** | A tool that runs linters only on files you're about to commit (faster) |
+| **Hook** | An automatic script that runs at a specific point (like before a commit) |
+| **Pre-commit** | A hook that runs before a commit is saved - can block bad code |
 
 ---
 
 ## Future Explanations
 
-*This section will be updated as new concepts are explained during our conversations.*
+*This section is updated as new concepts are explained during our conversations.*
 
-### [Date] - Topic
-Explanation will go here.
+### January 5, 2026 - Project Folder Location
+
+**What we changed:**
+Moved the project from `~/Desktop/github-connector-hub` to `~/Developer/policy-pocket`.
+
+**Why this matters:**
+- **Desktop gets cluttered** - Your Desktop is for temporary files, not long-term projects
+- **Better organization** - `~/Developer` is a standard location for code projects
+- **Easier backups** - Backup tools (like Time Machine) handle dedicated folders better than Desktop
+- **Cleaner project name** - Changed from generic "github-connector-hub" to "policy-pocket" (your actual app name)
+
+**What you need to know:**
+When opening the project, navigate to the new location:
+```bash
+cd ~/Developer/policy-pocket
+```
+
+**Real-world analogy:**
+It's like moving important documents from a pile on your desk into a proper filing cabinet.
+
+---
+
+### January 5, 2026 - Pre-Commit Hooks (Husky + lint-staged)
+
+**What we added:**
+Automatic code checking that runs every time you save changes (commit) to Git.
+
+**How it works:**
+1. You (or Claude) run `git commit` to save changes
+2. The "hook" automatically intercepts this
+3. It runs the linter (error checker) on only the files you changed
+4. If there are fixable errors, it fixes them automatically
+5. If there are unfixable errors, it blocks the commit and tells you what's wrong
+6. If everything passes, the commit goes through
+
+**Why this matters:**
+- **Catches mistakes early** - Errors are found before they're saved, not after
+- **Consistent code style** - Everyone's code follows the same rules
+- **Prevents broken code** - Can't accidentally commit code with obvious errors
+
+**Files involved:**
+| File | Purpose |
+|------|---------|
+| `.husky/pre-commit` | The script that runs before each commit |
+| `package.json` | Contains the lint-staged configuration (which files to check) |
+
+**Real-world analogy:**
+It's like a spell-checker that runs automatically before you send an email. You can still send it, but it'll flag any typos first.
+
+**What "lint-staged" means:**
+- **Lint** = Check code for errors and style issues
+- **Staged** = Files you've marked to be included in the next commit
+- **lint-staged** = Only check the files you're about to commit (faster than checking everything)
 
 ---
 
@@ -189,3 +244,16 @@ Explanation will go here.
 | `.claudeignore` | Files Claude should skip | "Do not enter" signs |
 | `.claude/settings.local.json` | Pre-approved permissions | Key to the supply closet |
 | `.claude/agents/*.md` | Specialist modes | On-call consultants |
+| `.husky/pre-commit` | Auto-runs linter before commits | Spell-checker before sending |
+
+## Project Location
+
+Your project lives at:
+```
+~/Developer/policy-pocket
+```
+
+To open it:
+```bash
+cd ~/Developer/policy-pocket
+```
