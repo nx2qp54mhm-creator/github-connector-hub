@@ -202,6 +202,44 @@ export function AddCoverageModal({
         return;
       }
 
+      // Poll for processing completion (smart-worker processes in background)
+      const maxAttempts = 30; // 30 seconds max
+      let attempts = 0;
+      let processingComplete = false;
+
+      while (attempts < maxAttempts && !processingComplete) {
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
+        attempts++;
+
+        const { data: statusCheck } = await supabase
+          .from("policy_documents")
+          .select("processing_status")
+          .eq("id", docData.id)
+          .single();
+
+        if (statusCheck?.processing_status === "completed") {
+          processingComplete = true;
+        } else if (statusCheck?.processing_status === "failed") {
+          toast({
+            title: "Analysis failed",
+            description: "Could not extract policy details. Please try again.",
+            variant: "destructive",
+          });
+          resetUploadState(file.name);
+          return;
+        }
+      }
+
+      if (!processingComplete) {
+        toast({
+          title: "Processing timeout",
+          description: "Analysis is taking longer than expected. Check back in a moment.",
+          variant: "destructive",
+        });
+        resetUploadState(file.name);
+        return;
+      }
+
       // Also add to local store for immediate UI update
       const categoryMap: Record<string, string[]> = {
         auto: ["foundational-auto"],

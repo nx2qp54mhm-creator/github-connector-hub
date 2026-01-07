@@ -1,21 +1,40 @@
 // supabase/functions/send-confirmation-email/index.ts
 // Deploy with: supabase functions deploy send-confirmation-email --no-verify-jwt
 // This function handles sending confirmation emails via Resend
+// Supports both manual invocation and Supabase Auth Hooks
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const SITE_URL = Deno.env.get("SITE_URL") || "http://localhost:5173";
+const SITE_URL = Deno.env.get("SITE_URL") || "https://policypocket.app";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Manual invocation format
 interface EmailRequest {
   email: string;
   confirmation_url: string;
   email_type: "signup" | "password_reset" | "email_change";
+}
+
+// Supabase Auth Hook format
+interface AuthHookPayload {
+  user: {
+    id: string;
+    email: string;
+  };
+  email_data: {
+    token: string;
+    token_hash: string;
+    redirect_to: string;
+    email_action_type: "signup" | "recovery" | "magiclink" | "email_change" | "invite";
+    site_url: string;
+    token_new?: string;
+    token_hash_new?: string;
+  };
 }
 
 function getEmailContent(emailType: string, confirmationUrl: string): { subject: string; html: string } {
@@ -151,6 +170,32 @@ function getEmailContent(emailType: string, confirmationUrl: string): { subject:
   }
 }
 
+// Map Supabase email_action_type to our email types
+function mapEmailActionType(actionType: string): "signup" | "password_reset" | "email_change" {
+  switch (actionType) {
+    case "signup":
+    case "invite":
+      return "signup";
+    case "recovery":
+    case "magiclink":
+      return "password_reset";
+    case "email_change":
+      return "email_change";
+    default:
+      return "signup";
+  }
+}
+
+// Check if payload is from Supabase Auth Hook
+function isAuthHookPayload(body: unknown): body is AuthHookPayload {
+  return (
+    typeof body === "object" &&
+    body !== null &&
+    "user" in body &&
+    "email_data" in body
+  );
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -163,14 +208,39 @@ serve(async (req) => {
       throw new Error("Email service is not configured. Please set RESEND_API_KEY.");
     }
 
-    const body: EmailRequest = await req.json();
-    const { email, confirmation_url, email_type } = body;
+    const body = await req.json();
 
-    if (!email || !confirmation_url) {
-      throw new Error("Email and confirmation_url are required");
+    let email: string;
+    let confirmationUrl: string;
+    let emailType: "signup" | "password_reset" | "email_change";
+
+    // Handle both Supabase Auth Hook format and manual invocation
+    if (isAuthHookPayload(body)) {
+      // Supabase Auth Hook format
+      email = body.user.email;
+      const { token_hash, redirect_to, email_action_type, site_url } = body.email_data;
+
+      // Construct confirmation URL
+      const baseUrl = redirect_to || site_url || SITE_URL;
+      const confirmPath = email_action_type === "recovery" ? "/reset-password" : "/confirm-email";
+      confirmationUrl = `${baseUrl}${confirmPath}?token_hash=${token_hash}&type=${email_action_type}`;
+
+      emailType = mapEmailActionType(email_action_type);
+
+      console.log(`Auth Hook: Sending ${emailType} email to ${email}`);
+    } else {
+      // Manual invocation format
+      const manualBody = body as EmailRequest;
+      email = manualBody.email;
+      confirmationUrl = manualBody.confirmation_url;
+      emailType = manualBody.email_type || "signup";
+
+      if (!email || !confirmationUrl) {
+        throw new Error("Email and confirmation_url are required");
+      }
     }
 
-    const { subject, html } = getEmailContent(email_type || "signup", confirmation_url);
+    const { subject, html } = getEmailContent(emailType, confirmationUrl);
 
     // Send email via Resend
     const resendResponse = await fetch("https://api.resend.com/emails", {
