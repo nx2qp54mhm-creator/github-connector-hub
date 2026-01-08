@@ -1,10 +1,18 @@
-import { Check, X, Shield, Calendar, FileText } from "lucide-react";
+import { useState } from "react";
+import { Check, X, Shield, Calendar, FileText, Pencil } from "lucide-react";
 import { AutoPolicy } from "@/hooks/useAutoPolicy";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { AutoPolicyEditForm } from "@/components/AutoPolicyEditForm";
+import { AutoPolicyFormData } from "@/lib/schemas/auto-policy-schema";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 interface AutoPolicyDetailsProps {
   policy: AutoPolicy;
+  onPolicyUpdated?: () => void;
 }
 
 function formatCurrency(amount: number): string {
@@ -93,7 +101,11 @@ function SectionHeader({ label }: SectionHeaderProps): React.ReactElement {
   );
 }
 
-export function AutoPolicyDetails({ policy }: AutoPolicyDetailsProps) {
+export function AutoPolicyDetails({ policy, onPolicyUpdated }: AutoPolicyDetailsProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const { user } = useAuth();
+
   const dateRange = formatDateRange(policy.coverage_start_date, policy.coverage_end_date);
   const premium = formatPremium(
     policy.premium_amount ? Number(policy.premium_amount) : null,
@@ -102,10 +114,75 @@ export function AutoPolicyDetails({ policy }: AutoPolicyDetailsProps) {
 
   // Check if we have liability data
   const hasLiability = policy.bodily_injury_per_person || policy.bodily_injury_per_accident || policy.property_damage_limit;
-  
+
   // Check if we have uninsured motorist data
-  const hasUninsuredMotorist = policy.uninsured_motorist_covered && 
+  const hasUninsuredMotorist = policy.uninsured_motorist_covered &&
     (policy.uninsured_motorist_per_person || policy.uninsured_motorist_per_accident);
+
+  const handleSave = async (data: AutoPolicyFormData) => {
+    if (!user) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("auto_policies")
+        .update({
+          insurance_company: data.insurance_company,
+          policy_number: data.policy_number,
+          coverage_start_date: data.coverage_start_date,
+          coverage_end_date: data.coverage_end_date,
+          collision_covered: data.collision_covered,
+          collision_deductible: data.collision_deductible,
+          comprehensive_covered: data.comprehensive_covered,
+          comprehensive_deductible: data.comprehensive_deductible,
+          bodily_injury_per_person: data.bodily_injury_per_person,
+          bodily_injury_per_accident: data.bodily_injury_per_accident,
+          property_damage_limit: data.property_damage_limit,
+          medical_payments_covered: data.medical_payments_covered,
+          medical_payments_limit: data.medical_payments_limit,
+          uninsured_motorist_covered: data.uninsured_motorist_covered,
+          uninsured_motorist_per_person: data.uninsured_motorist_per_person,
+          uninsured_motorist_per_accident: data.uninsured_motorist_per_accident,
+          rental_reimbursement_covered: data.rental_reimbursement_covered,
+          rental_reimbursement_daily: data.rental_reimbursement_daily,
+          rental_reimbursement_max: data.rental_reimbursement_max,
+          roadside_assistance_covered: data.roadside_assistance_covered,
+          premium_amount: data.premium_amount,
+          premium_frequency: data.premium_frequency,
+        })
+        .eq("id", policy.id)
+        .eq("user_id", user.id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      toast.success("Policy updated successfully");
+      setIsEditing(false);
+      onPolicyUpdated?.();
+    } catch (error) {
+      console.error("Error updating policy:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to update policy");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
+
+  // Edit mode
+  if (isEditing) {
+    return (
+      <AutoPolicyEditForm
+        policy={policy}
+        onSave={handleSave}
+        onCancel={handleCancel}
+        isSaving={isSaving}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -135,6 +212,15 @@ export function AutoPolicyDetails({ policy }: AutoPolicyDetailsProps) {
               </div>
             )}
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsEditing(true)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Pencil className="w-4 h-4 mr-1" />
+            Edit
+          </Button>
         </div>
 
         {dateRange && (

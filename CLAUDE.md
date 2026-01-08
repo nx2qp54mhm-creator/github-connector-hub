@@ -168,6 +168,61 @@ table, tabs, textarea, toast, toaster, toggle-group, toggle, tooltip
 - **Edge Functions (Deno)**: Quick operations, auth-dependent, low latency needs
 - **Worker (Node.js on Railway)**: PDF processing, heavy computation, long-running tasks
 
+## Policy Document Processing
+
+### smart-worker Edge Function
+Located at `supabase/functions/smart-worker/index.ts`, this function handles AI-powered extraction of insurance policy data.
+
+**Capabilities:**
+- Extracts structured data from PDFs and images (PNG, JPEG)
+- Supports auto, home, and renters insurance policies
+- Uses Claude Sonnet 4 for intelligent extraction
+- Background processing with `EdgeRuntime.waitUntil`
+- Returns confidence scores (0.0-1.0) for extraction quality
+
+**Flow:**
+1. User uploads document → stored in `insurance-documents` bucket
+2. Record created in `policy_documents` table with `processing_status: "pending"`
+3. Frontend calls `smart-worker` with `document_id`
+4. Function updates status to `"processing"`, extracts data via Claude API
+5. Extracted data saved to `auto_policies` (or home/renters equivalent)
+6. Status updated to `"completed"` or `"failed"`
+7. Frontend polls `processing_status` until complete, then refetches data
+
+**Extracted Fields (Auto Policy):**
+- Insurance company, policy number, dates
+- Collision & comprehensive coverage (with deductibles)
+- Liability limits (bodily injury, property damage)
+- Medical payments, uninsured motorist
+- Rental reimbursement, roadside assistance
+- Premium amount and frequency
+
+**Required Secrets:**
+- `ANTHROPIC_API_KEY` - For Claude API access
+
+**Deploy:**
+```bash
+npx supabase functions deploy smart-worker
+```
+
+### Storage Bucket
+- **Bucket:** `insurance-documents`
+- **File size limit:** 10MB
+- **Allowed types:** PDF, PNG, JPEG
+- **RLS:** User-scoped (files stored in `{user_id}/` folder)
+
+### Email Confirmation (send-confirmation-email)
+Located at `supabase/functions/send-confirmation-email/index.ts`.
+
+**Features:**
+- Sends branded Policy Pocket emails via Resend API
+- Supports signup, password reset, and email change
+- Compatible with Supabase Auth Hooks for automatic triggering
+
+**Required Secrets:**
+- `RESEND_API_KEY` - For Resend email service
+- `SITE_URL` - Base URL for confirmation links
+
 ### Component Patterns
 - Feature components in `src/components/[feature]/`
 - Page components in `src/pages/`

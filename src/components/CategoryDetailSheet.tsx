@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, CheckCircle2, XCircle, Trash2, RefreshCw, Loader2, AlertTriangle, Car, Globe } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Plus, CheckCircle2, XCircle, Trash2, RefreshCw, Loader2, AlertTriangle, Car, Globe, RotateCcw } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,6 +13,7 @@ import { AutoPolicyDetails } from "@/components/AutoPolicyDetails";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { useDocumentPolling } from "@/hooks/useDocumentPolling";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -127,6 +128,79 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
   const { user } = useAuth();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showReanalyzeDialog, setShowReanalyzeDialog] = useState(false);
+  const [isReanalyzing, setIsReanalyzing] = useState(false);
+
+  // Polling hook for re-analysis
+  const handleReanalyzeComplete = useCallback(async () => {
+    await refetchAutoPolicy();
+    setIsReanalyzing(false);
+    toast.success("Policy re-analyzed successfully");
+  }, [refetchAutoPolicy]);
+
+  const handleReanalyzeFailed = useCallback((error: string) => {
+    setIsReanalyzing(false);
+    toast.error("Re-analysis failed", { description: error });
+  }, []);
+
+  const handleReanalyzeTimeout = useCallback(() => {
+    setIsReanalyzing(false);
+    toast.error("Re-analysis timeout", { description: "Please try again later." });
+  }, []);
+
+  const { isPolling, startPolling } = useDocumentPolling({
+    onComplete: handleReanalyzeComplete,
+    onFailed: handleReanalyzeFailed,
+    onTimeout: handleReanalyzeTimeout,
+  });
+
+  const handleReanalyze = async () => {
+    if (!autoPolicy || !user || !autoPolicy.document_id) return;
+
+    setShowReanalyzeDialog(false);
+    setIsReanalyzing(true);
+
+    try {
+      // Step 1: Delete existing auto_policies record (keeps the document)
+      const { error: deleteError } = await supabase
+        .from("auto_policies")
+        .delete()
+        .eq("id", autoPolicy.id)
+        .eq("user_id", user.id);
+
+      if (deleteError) {
+        throw new Error(`Failed to clear old data: ${deleteError.message}`);
+      }
+
+      // Step 2: Reset policy_documents status to pending
+      const { error: updateError } = await supabase
+        .from("policy_documents")
+        .update({ processing_status: "pending", error_message: null })
+        .eq("id", autoPolicy.document_id)
+        .eq("user_id", user.id);
+
+      if (updateError) {
+        throw new Error(`Failed to reset status: ${updateError.message}`);
+      }
+
+      // Step 3: Invoke smart-worker to re-process
+      const { error: invokeError } = await supabase.functions.invoke("smart-worker", {
+        body: { document_id: autoPolicy.document_id },
+      });
+
+      if (invokeError) {
+        throw new Error(`Failed to start re-analysis: ${invokeError.message}`);
+      }
+
+      // Step 4: Start polling for completion
+      toast.info("Re-analyzing your policy...");
+      startPolling(autoPolicy.document_id);
+    } catch (error) {
+      console.error("Re-analyze error:", error);
+      setIsReanalyzing(false);
+      toast.error(error instanceof Error ? error.message : "Failed to re-analyze policy");
+    }
+  };
 
   if (!category) return null;
 
@@ -284,7 +358,7 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
 
         <div className="py-6">
           {/* Auto Insurance Policy Details */}
-          {hasAutoPolicy && <AutoPolicyDetails policy={autoPolicy} />}
+          {hasAutoPolicy && <AutoPolicyDetails policy={autoPolicy} onPolicyUpdated={refetchAutoPolicy} />}
 
           {/* Non-auto content with optional tabs */}
           {/* Non-auto content */}
@@ -299,26 +373,46 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
         {/* Footer Actions */}
         <div className="pt-4 border-t border-border">
           {hasAutoPolicy ? (
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowReanalyzeDialog(true)}
+                  disabled={isDeleting || isReanalyzing || isPolling}
+                  className="flex-1"
+                >
+                  {isReanalyzing || isPolling ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <RotateCcw className="w-4 h-4 mr-2" />
+                      Re-analyze
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => {
+                    onOpenChange(false);
+                    setTimeout(onAddCoverage, 300);
+                  }}
+                  disabled={isDeleting || isReanalyzing || isPolling}
+                  className="flex-1"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Replace policy
+                </Button>
+              </div>
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={() => setShowDeleteDialog(true)}
-                disabled={isDeleting}
-                className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                disabled={isDeleting || isReanalyzing || isPolling}
+                className="text-muted-foreground hover:text-destructive"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete policy
-              </Button>
-              <Button
-                onClick={() => {
-                  onOpenChange(false);
-                  setTimeout(onAddCoverage, 300);
-                }}
-                disabled={isDeleting}
-                className="flex-1"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Replace policy
               </Button>
             </div>
           ) : (
@@ -437,6 +531,25 @@ export function CategoryDetailSheet({ category, open, onOpenChange, onAddCoverag
               ) : (
                 "Delete"
               )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Re-analyze Confirmation Dialog */}
+      <AlertDialog open={showReanalyzeDialog} onOpenChange={setShowReanalyzeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Re-analyze policy?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will re-process your policy document with AI to extract coverage details.
+              Use this if the original extraction missed information or contains errors.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReanalyze}>
+              Re-analyze
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

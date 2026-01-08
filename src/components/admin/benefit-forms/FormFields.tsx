@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { UseFormReturn, FieldPath, FieldValues, PathValue } from "react-hook-form";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Plus, X } from "lucide-react";
 
 interface CurrencyFieldProps<T extends FieldValues> {
@@ -122,6 +123,10 @@ export function TextField<T extends FieldValues>({
               placeholder={placeholder}
               {...field}
               value={field.value ?? ""}
+              onChange={(e) => {
+                const value = e.target.value === "" ? null : e.target.value;
+                field.onChange(value);
+              }}
             />
           </FormControl>
           <FormMessage />
@@ -265,6 +270,79 @@ export function StringArrayField<T extends FieldValues>({
           </FormItem>
         );
       }}
+    />
+  );
+}
+
+interface SwitchFieldProps<T extends FieldValues> {
+  form: UseFormReturn<T>;
+  name: FieldPath<T>;
+  label: string;
+  description?: string;
+}
+
+export function SwitchField<T extends FieldValues>({
+  form,
+  name,
+  label,
+  description,
+}: SwitchFieldProps<T>) {
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+          <div className="space-y-0.5">
+            <FormLabel className="text-sm font-medium">{label}</FormLabel>
+            {description && (
+              <FormDescription className="text-xs">{description}</FormDescription>
+            )}
+          </div>
+          <FormControl>
+            <Switch
+              checked={field.value ?? false}
+              onCheckedChange={field.onChange}
+            />
+          </FormControl>
+        </FormItem>
+      )}
+    />
+  );
+}
+
+interface DateFieldProps<T extends FieldValues> {
+  form: UseFormReturn<T>;
+  name: FieldPath<T>;
+  label: string;
+}
+
+export function DateField<T extends FieldValues>({
+  form,
+  name,
+  label,
+}: DateFieldProps<T>) {
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <FormControl>
+            <Input
+              type="date"
+              {...field}
+              value={field.value ?? ""}
+              onChange={(e) => {
+                const value = e.target.value === "" ? null : e.target.value;
+                field.onChange(value);
+              }}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
     />
   );
 }
